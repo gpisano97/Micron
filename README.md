@@ -50,7 +50,7 @@ Micron is very easy to use, follow this simple steps:
 
 ## API
 
-### DataHelper
+### * DataHelper
 Provides useful methods for retriving data.
 
 | Name | Description | Return value |

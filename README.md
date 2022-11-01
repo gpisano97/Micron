@@ -50,12 +50,21 @@ Micron is very easy to use, follow this simple steps:
 
 ## API
 
-### * DataHelper
+### DataHelper
 Provides useful methods for retriving data.
 
-| Name | Description | Return value |
-| ---- | ----------- | ---------------- |
-| `postGetBody()` | read the data upcoming in the body from the php input | `array` |
+| Name | Parameters | Description | Return value |
+| ---- | ---------- | ----------- | ---------------- |
+| `postGetBody()` | `none` | read the data upcoming in the body from the php input | `array` |
+| `getToken()` | `none` | read the token from the upcoming headers | `string` |
 
+### Route
+Provides routing method, use this for build your paths.
+
+| Name | Prameters | Description | Return value |
+| ---- | --------- | ----------- | ---------------- |
+| `get()` | `string $route` => path for reach the resource    | define a route with GET HTTP method | void |
+|         | `function $callback` => function to be executed   |                                     |      |
+| ------- | ------------------------------------------------- | ---------------------------------- | ----- |
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

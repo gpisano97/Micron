@@ -63,7 +63,8 @@ Provides routing method, use this for build your paths.
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `get()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => define header setted by resource in form of `"header" => "value"` | define a route with GET HTTP method | `void` |
+| `get()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with GET HTTP method | `void` |
+| `post()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with POST HTTP method | `void` |
 
 
 ## Inspiration 

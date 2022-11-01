@@ -50,5 +50,7 @@ Micron is very easy to use, follow this simple steps:
 
 ## API
 
+### DataHelper
+
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

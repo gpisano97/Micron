@@ -63,8 +63,8 @@ Provides routing method, use this for build your paths.
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `get()` | `string $route` => path for reach the resource    | define a route with GET HTTP method | void |
-|         | `function $callback` => function to be executed   |                                     |      |
-| ------- | ------------------------------------------------- | ---------------------------------- | ----- |
+| `get()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed | define a route with GET HTTP method | void |
+
+
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

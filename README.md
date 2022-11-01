@@ -74,16 +74,16 @@ Provides an useful set of JSON responses with preconfigured HTTP code or complet
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `success()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 200 |
-| `created()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 201 |
-| `updated()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 204 |
-| `badRequest()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 400, set "state key" in response to `false` |
-| `unhatorized()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 401, set "state key" in response to `false` |
-| `forbidden()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 403, set "state key" in response to `false` |
-| `notFound()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 404, set "state key" in response to `false` |
-| `internalServerError()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 500, set "state key" in response to `false` |
-| `notImplemented()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 501, set "state key" in response to `false` |
-| `response()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON <br /> `bool $state` => boolean rappresentation of call success <br /> `int $http_code` => HTTP code to be setted | display a JSON response configured with given parameters |
+| `success()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 200 | `void` |
+| `created()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 201 | `void` |
+| `updated()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 204 | `void` |
+| `badRequest()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 400, set "state key" in response to `false` | `void` |
+| `unhatorized()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 401, set "state key" in response to `false` | `void` |
+| `forbidden()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 403, set "state key" in response to `false` | `void` |
+| `notFound()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 404, set "state key" in response to `false` | `void` |
+| `internalServerError()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 500, set "state key" in response to `false` | `void` |
+| `notImplemented()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 501, set "state key" in response to `false` | `void` |
+| `response()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON <br /> `bool $state` => boolean rappresentation of call success <br /> `int $http_code` => HTTP code to be setted | display a JSON response configured with given parameters | `void` |
 
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

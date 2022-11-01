@@ -54,7 +54,7 @@ Micron is very easy to use, follow this simple steps:
 Provides useful methods for retriving data.
 
 | Name | Description | Return value |
-| ----------------------------------- |
+| ---- | ----------- | ---------------- |
 | postGetBody() | read the data upcoming in the body from the php input | array |
 
 ## Inspiration 

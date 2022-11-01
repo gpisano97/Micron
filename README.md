@@ -87,3 +87,6 @@ Provides an useful set of JSON responses with preconfigured HTTP code or complet
 
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  
+
+## About me
+I'm an Italian Full-stack Web Developer since 2019 with **TacoSoft s.r.l**. and a student of **Politecnico di Torino**, in this moment i'm having fun with **ReactJS**, but i started with **PHP** and I can't leave him. Follow me on my [Linked-In page](https://www.linkedin.com/in/girolamo-dario-pisano-375aa514b/) to be updated with some awesome project!

@@ -55,7 +55,7 @@ Provides useful methods for retriving data.
 
 | Name | Description | Return value |
 | ---- | ----------- | ---------------- |
-| postGetBody() | read the data upcoming in the body from the php input | array |
+| `postGetBody()` | read the data upcoming in the body from the php input | `array` |
 
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

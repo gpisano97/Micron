@@ -26,9 +26,9 @@ class Response
      200 -> OK -> operazione eseguita con successo,
      201 -> CREATED => nuova risorsa, da lanciare dopo POST
      400 -> "BAD REQUEST" -> richiesta formulata male (es: parametri sbagliati ecc ecc)
-     401 -> "UNAUTHORIZED" -> token errato o cose così
+     401 -> "UNAUTHORIZED" -> token errato o cose cosï¿½
      403 -> "FORBIDDEN" -> richiesta corretta ma permessi insufficienti
-     404 -> "NOT FOUND" -> risorsa non trovata -> es prodott/1 ma 1 non c'è nel database
+     404 -> "NOT FOUND" -> risorsa non trovata -> es prodott/1 ma 1 non c'ï¿½ nel database
      500 -> "INTERNAL SERVER ERROR" -> errore generico
      501 -> "NOT IMPLEMENTED" -> non implementata 
      */
@@ -77,6 +77,11 @@ class Response
     
     public function created(string $message, array $data = []){
         http_response_code(201);
+        $this->responseHelper($message, $data);
+    }
+
+    public function updated(string $message, array $data = []){
+        http_response_code(204);
         $this->responseHelper($message, $data);
     }
     

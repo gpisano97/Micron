@@ -1,9 +1,12 @@
 <?php
 namespace helper;
 
+require_once 'ParamKey.php';
+
+
 /**
  *
- * @author girol
+ * @author Girolamo Dario Pisano
  *        
  */
 class DataHelper
@@ -36,6 +39,40 @@ class DataHelper
         }
         $headers = str_replace("Bearer ", "", $headers);
         return $headers;
+    }
+    
+
+    /**
+     * @param array $keys
+     * @param array $requestBody
+     * @throws \Exception
+     * @return boolean
+     * <br />
+     * 
+     * This function return "true" if the params in $keys array match the $requestBody, "false" otherwise <br />
+     * Throw a PHP Exception if $keys items are not instance of ParamKey class.
+     */
+    public static function checkParameters(array $keys, array $requestBody){ 
+        if(count($keys) === 0 && count($requestBody) === 0){
+            return true;
+        }
+        foreach ($keys as $key) {
+            if($key instanceof ParamKey){
+                if(!isset($requestBody[$key->key])){
+                   return false; 
+                }
+                else if($key->isNullable && $requestBody[$key->key] !== null){
+                    return false;
+                }
+                else if($key->toBeFull && $requestBody[$key->key] === ""){
+                    return false;
+                }
+            }
+            else{
+                throw new \Exception('$keys array items must be instance of ParamKey class.');
+            }
+        }
+       return true;
     }
 }
 

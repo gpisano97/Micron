@@ -46,4 +46,35 @@ class Database{
         }
         return $q_p;
     }
+    
+    /**
+     * @param array $queries
+     * @param array $params
+     * @return bool
+     * 
+     * Begin a transaction and make the queries from index 0 to last.
+     * If there are some queries without parameters, put at corresponding index in $params array an empty array
+     * 
+     * return true if all queries are completed.
+     */
+    public static function ExecTransaction(array $queries, array $params = []){
+        if(count($queries) > 0){
+            $db = new \Database();
+            $conn = $db->getConnection();
+            try {
+                $conn->beginTransaction();
+                foreach ($queries as $index => $query){
+                    $db->ExecQuery($query, $params[$index]);
+                }
+                $conn->commit();
+                return true;
+                
+            } catch (Exception $e) {
+                $conn->rollBack();
+                throw new Exception("Database error.", 500);
+            }
+           
+        }
+        throw new Exception("Any query found.", 500);
+    }
 }

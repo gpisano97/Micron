@@ -86,31 +86,31 @@ class Route {
     }
     
 
-    function get($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
+    public function get($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
         if($_SERVER["REQUEST_METHOD"] === "GET"){
             $this->navigate($route, $callback, "GET", $headers);
         }
     }
     
-    function post($route,$callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){       
+    public function post($route,$callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){       
         if($_SERVER["REQUEST_METHOD"] === "POST"){
             $this->navigate($route, $callback, "POST", $headers);
         }       
     }
     
-    function delete($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
+    public function delete($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
         if($_SERVER["REQUEST_METHOD"] === "DELETE"){
             $this->navigate($route, $callback, "DELETE", $headers);
         } 
     }
     
-    function put($route,$callback){
+    public function put($route,$callback){
         if($_SERVER["REQUEST_METHOD"] === "PUT"){
             $this->navigate($route, $callback, "PUT");
         }
     }
     
-    function notFound($file){
+    public function notFound($file){
         include($file);
         exit();
     }

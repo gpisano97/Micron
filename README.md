@@ -100,7 +100,10 @@ Class that manage JWT tokens. All the methods throw Exceptions on errors. The ex
 ### Database
 Simple class for manage MySQL Database connection and interaction. Based on PDO.
 
-
+| Name | Prameters | Description | Return value |
+| ---- | --------- | ----------- | ---------------- |
+| `getConnection()` | `none` | Enstabilish a Database connection with given configuration in `config.php` and return a PDO Object. Throw exceptions on errors. | `PDO Object` |
+| `ExecQuery()` | `string $query_string` => an SQL query. You can put inside params (`:param` notation) and the function automatically prepare the query with value passed in second argument. <br /> | `PDO Statement Object` |
 
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

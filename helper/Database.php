@@ -21,7 +21,7 @@ class Database{
             $this->connection->exec("set names utf8");
         }
         catch(PDOException $exception){
-            throw new Exception("Errore di connessione: ". $exception->getMessage(), 500);
+            throw new Exception("Database connection error: ". $exception->getMessage(), 500);
         }
         return $this->connection;
     }
@@ -35,14 +35,20 @@ class Database{
      * Use this for fast query executions.
      */
     public static function ExecQuery($query_string, $params = []){
-        $db = new \Database();
-        $conn = $db->getConnection();
-        $q_p = $conn->prepare($query_string);
-        if($q_p === false){
-            throw new Exception("Query prepare error.", 501);
+        try {
+            $db = new \Database();
+            $conn = $db->getConnection();
+            $q_p = $conn->prepare($query_string);
+            $exec = $q_p->execute($params);
+        } catch (Exception $e) {
+            throw new Exception("Database Error: ".$e->getMessage(), 500);
         }
-        if($q_p->execute($params) === false){
-            throw new Exception("Query execution error.", 501);
+        
+        if($q_p === false){
+            throw new Exception("Query prepare error.", 500);
+        }
+        if($exec === false){
+            throw new Exception("Query execution error.", 500);
         }
         return $q_p;
     }

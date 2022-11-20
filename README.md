@@ -57,6 +57,7 @@ Provides useful methods for retriving data.
 | ---- | ---------- | ----------- | ---------------- |
 | `postGetBody()` | `none` | read the data upcoming in the body from the php input | `array` |
 | `getToken()` | `none` | read the token from the upcoming headers | `string` |
+| `checkParameters()` | `array<ParamKey> $keys` => this array must contains all the body key to check, every array's item is an instance of `ParamKey Class` <br /> `array $requestBody` => the request body (take this with `postGetBody()` | Check if the incoming parameters key is present and if respect the setted constraints | `bool` |
 
 ### Route
 Provides routing method, use this for build your paths.
@@ -99,7 +100,11 @@ Class that manage JWT tokens. All the methods throw Exceptions on errors. The ex
 ### Database
 Simple class for manage MySQL Database connection and interaction. Based on PDO.
 
-
+| Name | Prameters | Description | Return value |
+| ---- | --------- | ----------- | ---------------- |
+| `getConnection()` | `none` | Enstabilish a Database connection with given configuration in `config.php` and return a PDO Object. Throw exceptions on errors. | `PDO Object` |
+| `ExecQuery()` | `string $query_string` => an SQL query. You can put inside params (`:param` notation) and the function automatically prepare the query with value passed in second argument. <br /> `array $params` => params for query preparation. This is an associative array, the key is the param name and the value is the value to be binded in the query. | Execute a query on database. The query can be prepared or not. Throw exception on error. | `PDO Statement Object` |
+| `ExecTransaction()` | `array $queries` => array of strings, every string is a query of transaction.<br/> `array $params` => an array of array, every array must contains query preparation params. Can be empty. | Begin a transaction and make the queries from index 0 to last.If there are some queries without parameters, put at corresponding index in $params array an empty array. | `bool` |
 
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  

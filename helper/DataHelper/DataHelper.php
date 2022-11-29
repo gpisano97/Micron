@@ -21,6 +21,18 @@ class DataHelper
         return json_decode(file_get_contents("php://input"), true);
     }
     
+    public static function getUrlEncodedBody($resultLikeObject = false){
+        $data = null;
+        parse_str(file_get_contents("php://input"), $data);
+        if(!$resultLikeObject){
+            return $data;
+        }
+        else{
+            $data = (object)$data;
+            return $data;
+        }
+    }
+    
     public static function getToken(){
         $headers = null;
         if (isset($_SERVER['Authorization'])) {

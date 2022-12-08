@@ -69,6 +69,7 @@ Provides routing method, use this for build your paths.
 | `put()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with PUT HTTP method. | `void` |
 | `delete()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with DELETE HTTP method. | `void` |
 | `notFound()` | `string $path` => path of the file to be included | attach a file that manage the "resource not found" case. | `void` |
+| `enableCORS()` | `string $allowedOrigin = "*"` => Parameter for set allowed origin. "*" By default. | Is used for manage the Preflight CORS request. | `void` |
 
 ### Response
 Provides an useful set of JSON responses with preconfigured HTTP code or completely configurable JSON response.

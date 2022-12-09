@@ -1,6 +1,9 @@
 <?php
 class Route {
     
+    private $enabledCORSUrl = "*";
+    private $CORSEnabled = false;
+    
     private function simpleRoute($callback, $route){
         
         if(!empty($_REQUEST['uri'])){
@@ -19,10 +22,14 @@ class Route {
         
     }
     
-    private function navigate($route, $callback, $method, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
+    private function navigate($route, $callback, $method, $headers = array("Access-Control-Max-Age" => "3600")){
         
+        if($this->CORSEnabled){
+            header("Access-Control-Allow-Origin: {$this->enabledCORSUrl}");
+        }
         header("Access-Control-Allow-Methods: ".$method);
-        
+        header("Access-Control-Allow-Headers: Origin, Content-Type, Content-Type, Authorization, X-Requested-With");
+        header("Content-Type: application/json; charset=UTF-8");
         $headers_key = array_keys($headers);
         
         foreach($headers_key as $header){
@@ -49,7 +56,7 @@ class Route {
         }else{
             $reqUri = "/";
         }
-
+        
         $uri = explode("/", $route);
         
         $indexNum = [];
@@ -85,30 +92,53 @@ class Route {
         }
     }
     
-
-    public function get($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
+    
+    public function get($route, $callback, $headers = []){
         if($_SERVER["REQUEST_METHOD"] === "GET"){
-            $this->navigate($route, $callback, "GET", $headers);
+            if(count($headers) > 0){
+                $this->navigate($route, $callback, "GET", $headers);
+            }
+            else{
+                $this->navigate($route, $callback, "GET");
+            }
         }
     }
     
-    public function post($route,$callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){       
+    public function post($route,$callback, $headers = []){
+        
         if($_SERVER["REQUEST_METHOD"] === "POST"){
-            $this->navigate($route, $callback, "POST", $headers);
-        }       
-    }
-    
-    public function delete($route, $callback, $headers = array("Access-Control-Allow-Origin" => "*", "Content-Type" => "application/json; charset=UTF-8", "Access-Control-Max-Age" => "3600", "Access-Control-Allow-Headers" => "Content-Type, Access-Contro-Allow-Headers, Authorization, X-Requested-With")){
-        if($_SERVER["REQUEST_METHOD"] === "DELETE"){
-            $this->navigate($route, $callback, "DELETE", $headers);
-        } 
-    }
-    
-    public function put($route,$callback){
-        if($_SERVER["REQUEST_METHOD"] === "PUT"){
-            $this->navigate($route, $callback, "PUT");
+            if(count($headers) > 0){
+                $this->navigate($route, $callback, "POST", $headers);
+            }
+            else{
+                $this->navigate($route, $callback, "POST");
+            }
         }
     }
+    
+    public function delete($route, $callback, $headers = []){
+        if($_SERVER["REQUEST_METHOD"] === "DELETE"){
+            if(count($headers) > 0){
+                $this->navigate($route, $callback, "DELETE", $headers);
+            }
+            else{
+                $this->navigate($route, $callback, "DELETE");
+            }
+        }
+    }
+    
+    public function put($route, $callback, $headers = []){
+        if($_SERVER["REQUEST_METHOD"] === "PUT"){
+            if(count($headers) > 0){
+                $this->navigate($route, $callback, "PUT", $headers);
+            }
+            else{
+                $this->navigate($route, $callback, "PUT");
+            }
+            
+        }
+    }
+    
     
     public function notFound($file){
         include($file);
@@ -116,6 +146,8 @@ class Route {
     }
     
     public function enableCORS($allowedOrigin = "*"){
+        $this->enabledCORSUrl=$allowedOrigin;
+        $this->CORSEnabled = true;
         if($_SERVER["REQUEST_METHOD"] === "OPTIONS"){
             http_response_code(204);
             header("Access-Control-Allow-Origin: {$allowedOrigin}");

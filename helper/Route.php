@@ -1,7 +1,7 @@
 <?php
 class Route {
     
-    private $enabledCORSUrl = "*";
+    private $allowedCORSUrl = "*";
     private $CORSEnabled = false;
     
     private function simpleRoute($callback, $route){
@@ -25,7 +25,7 @@ class Route {
     private function navigate($route, $callback, $method, $headers = array("Access-Control-Max-Age" => "3600")){
         
         if($this->CORSEnabled){
-            header("Access-Control-Allow-Origin: {$this->enabledCORSUrl}");
+            header("Access-Control-Allow-Origin: {$this->allowedCORSUrl}");
         }
         header("Access-Control-Allow-Methods: ".$method);
         header("Access-Control-Allow-Headers: Origin, Content-Type, Content-Type, Authorization, X-Requested-With");
@@ -146,7 +146,7 @@ class Route {
     }
     
     public function enableCORS($allowedOrigin = "*"){
-        $this->enabledCORSUrl=$allowedOrigin;
+        $this->allowedCORSUrl=$allowedOrigin;
         $this->CORSEnabled = true;
         if($_SERVER["REQUEST_METHOD"] === "OPTIONS"){
             http_response_code(204);

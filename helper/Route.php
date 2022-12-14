@@ -71,7 +71,7 @@ class Route {
         
         foreach($indexNum as $key => $index){
             
-            if(empty($reqUri[$index])){
+            if(empty($reqUri[$index]) && $reqUri[$index] != 0 ){
                 return;
             }
             

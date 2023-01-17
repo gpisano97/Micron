@@ -71,11 +71,14 @@ class Route {
         
         foreach($indexNum as $key => $index){
             
-            if(empty($reqUri[$index]) && $reqUri[$index] != 0 ){
+            if(isset($reqUri[$index]) && empty($reqUri[$index]) && $reqUri[$index] != 0 ){
                 return;
             }
             
-            $params[$paramKey[$key]] = $reqUri[$index];
+            if(isset($reqUri[$index])){
+                $params[$paramKey[$key]] = $reqUri[$index];
+            }
+            
             
             $reqUri[$index] = "{.*}";
         }

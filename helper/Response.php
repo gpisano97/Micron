@@ -67,6 +67,7 @@ class Response
             $this->result["data"] = $data;
         }
         echo json_encode($this->result);
+        exit;
     }
     
     public function success(string $message, array $data = []){

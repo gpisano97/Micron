@@ -5,7 +5,7 @@ use JWT\JWT;
 
 function example(array $params = []){
     
-    include_once '../../helper/DataHelper/DataHelper.php';
+    include_once 'helper/DataHelper/DataHelper.php';
     include_once 'helper/Response.php';
     include_once 'helper/Database.php';
     include_once 'JWT/JWT.php';

@@ -34,91 +34,92 @@ class Response
      */
     
     /**
-     * @param string $messaggio
-     * @param array $dati
-     * @return array
+     * 
+     * @param string $message
+     * @param array|object $data
+     * @param bool $state
+     * @return never
+     * 
+     * Return a JSON response
      */
-    public function EsitoPositivo($messaggio = "", array $dati = null){
-        $this->result["risultato"]["esito"] = true;
-        $this->result["risultato"]["descrizione"] = $messaggio;
-        if($dati != null){
-            $this->result["data"] = $dati;
-        }
-        return $this->result;
-    }
-    
-    public function EsitoNegativo($messaggio = "", $codice_errore = "", $linea_errore = ""){
-        $this->result["risultato"]["esito"] = false;
-        $this->result["risultato"]["descrizione"] = $messaggio;
-        if($codice_errore != ""){
-            $this->result["risultato"]["codice"] = $codice_errore;
-        }
-        if($linea_errore != ""){
-            $this->result["risultato"]["linea"] = $linea_errore;
-        }
-        unset($this->result["data"]);
-        return $this->result;
-    }
-    
-    private function responseHelper(string $message, array $data = [], bool $state = true){
+    private function responseHelper(string $message, array|object|null $data = null, bool $state = true){
         $this->result["result"]["state"] = $state;
         $this->result["result"]["description"] = $message;
-        if(count($data) > 0){
+        if($data === null){
+            $this->result["data"] = [];
+        }
+        else{
             $this->result["data"] = $data;
         }
         echo json_encode($this->result);
         exit;
     }
     
-    public function success(string $message, array $data = []){
+    /**
+     * 
+     * @param string $message
+     * @param array|object|null $data
+     * @return void
+     * 
+     * This function set HTTP code 200 and send a JSON response with the $message parameter and the $data parameter.</br>
+     * Is suggested use this response for GET, DELETE or PUT request.
+     */
+    public function success(string $message, array|object|null $data = null){
         http_response_code(200);
-       
         $this->responseHelper($message, $data);
     }
     
-    public function created(string $message, array $data = []){
+    /**
+     * 
+     * @param string $message
+     * @param array|object|null $data
+     * @return never
+     * This function set HTTP code 201 and send a JSON response with the $message parameter and the $data parameter.</br>
+     * Is suggested use this response for POST request (creating new resource on DB).
+     */
+    public function created(string $message, array|object|null $data = null){
         http_response_code(201);
         $this->responseHelper($message, $data);
     }
 
-    public function updated(string $message, array $data = []){
+    public function updated(string $message, array|object|null $data = null){
         http_response_code(204);
         $this->responseHelper($message, $data);
     }
     
-    public function badRequest($message){
+    public function badRequest(string $message){
         http_response_code(400);
         $this->responseHelper($message, array(), false);
     }
     
-    public function unhatorized($message){
+    public function unhatorized(string $message){
         http_response_code(401);
         $this->responseHelper($message, array(), false);
     }
     
-    public function forbidden($message){
+    public function forbidden(string $message){
         http_response_code(403);
         $this->responseHelper($message, array(), false);
     }
     
-    public function notFound($message="Resource not found"){
+    public function notFound(string $message="Resource not found"){
        http_response_code(404);
        $this->responseHelper($message);
     }
     
-    public function internalServerError($message = "Internal server error."){
+    public function internalServerError(string $message = "Internal server error."){
         http_response_code(500);
         echo $message;
     }
     
-    public function notImplemented($message = "Method not implemented."){
+    public function notImplemented(string $message = "Method not implemented."){
         http_response_code(501);
         echo $message;
     }
     
     /**
      * @param string $message
-     * @param array $data
+     * @param array|object|null $data
      * @param bool $state
      * @param int $http_code
      * 
@@ -132,7 +133,7 @@ class Response
      *500 -> "INTERNAL SERVER ERROR" -> Server error.<br/>
      *501 -> "NOT IMPLEMENTED" -> Correct route but under construction.<br/>
      */
-    public function response(string $message, array $data = [], bool $state = true, int $http_code = 200){
+    public function response(string $message, array|object|null $data = null, bool $state = true, int $http_code = 200){
         $this->result["result"]["state"] = $state;
         $this->result["result"]["description"] = $message;
         if(count($data) > 0){

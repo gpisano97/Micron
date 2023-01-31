@@ -77,9 +77,9 @@ Provides an useful set of JSON responses with preconfigured HTTP code or complet
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `success()` | `string $message` => message that will be displayed in response JSON <br /> `array|object|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 200 | `void` |
-| `created()` | `string $message` => message that will be displayed in response JSON <br /> `array|object|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 201 | `void` |
-| `updated()` | `string $message` => message that will be displayed in response JSON <br /> `array|object|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 204 | `void` |
+| `success()` | `string $message` => message that will be displayed in response JSON <br /> `array\|object\|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 200 | `void` |
+| `created()` | `string $message` => message that will be displayed in response JSON <br /> `array\|object\|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 201 | `void` |
+| `updated()` | `string $message` => message that will be displayed in response JSON <br /> `array\|object\|null $data` => data that will be returned in response JSON | display a JSON response and set the HTTP Code 204 | `void` |
 | `badRequest()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 400, set "state key" in response to `false` | `void` |
 | `unhatorized()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 401, set "state key" in response to `false` | `void` |
 | `forbidden()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 403, set "state key" in response to `false` | `void` |

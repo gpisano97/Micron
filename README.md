@@ -58,6 +58,7 @@ Provides useful methods for retriving data.
 | `postGetBody()` | `none` | read the data upcoming in the body from the php input | `array` |
 | `getToken()` | `none` | read the token from the upcoming headers | `string` |
 | `checkParameters()` | `array<ParamKey> $keys` => this array must contains all the body key to check, every array's item is an instance of `ParamKey Class` <br /> `array $requestBody` => the request body (take this with `postGetBody()` | Check if the incoming parameters key is present and if respect the setted constraints | `bool` |
+| `convertAdjacencyListToNestedObject(array $adjacency_list, int $index = 0, string $id_key = "id", string $parent_id_key = "parent_id")` | `array $adjacency_list` => an associative array that models an adjacency list <br /> `int $index = 0` => Starting index, default value is strongly raccomanded <br /> `string $id_key = "id" `=> the id key in the data <br /> `string $parent_id_key = "parent_id"` => the parent id in the data | Make a nested object (tree) starting from an Adjacency List Array | `Node` |
 
 ### Route
 Provides routing method, use this for build your paths.

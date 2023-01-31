@@ -8,7 +8,11 @@ $route = new Route();
 
 //GET
 
-$route->get("example", function(){
+$route->get("example/adjacency", function () {
+    exampleAdjacency();
+});
+
+$route->get("example/{param}", function($params){
     example();
 });
 

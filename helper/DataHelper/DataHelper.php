@@ -2,6 +2,7 @@
 namespace helper;
 
 require_once 'ParamKey.php';
+require_once 'Node.php';
 
 
 /**
@@ -86,5 +87,35 @@ class DataHelper
         }
        return true;
     }
+
+    
+    
+    private function makeTree($adjacency_list, $index = 0, $id_key = "id", $parent_id_key = "parent_id", $depth = -1){
+        $nodeDepth = $depth + 1;
+        $node = new \Node($adjacency_list[$index], $nodeDepth, ($index % 2 === 0 ? false : true));
+        for($i = $index; $i < count($adjacency_list); $i++){
+            if($node->node[$id_key] === $adjacency_list[$i][$parent_id_key]){
+                $node->addChildren($this->makeTree($adjacency_list, $i, $id_key, $parent_id_key, $nodeDepth));
+            }
+        }
+        return $node;
+    }
+
+    /**
+     * Summary of convertAdjacencyListToNestedObject
+     * @param array $adjacency_list
+     * @param int $index
+     * @param string $id_key
+     * @param string $parent_id_key
+     * @return \Node
+     * 
+     * Function that convert an Adjacency List Array (common for modelling nested structures in MySQL) into an Object.
+     * Every item of the list become a Node Class Object. Every Node has a list of nested childrends.
+     */
+    public function convertAdjacencyListToNestedObject(array $adjacency_list, int $index = 0, string $id_key = "id", string $parent_id_key = "parent_id")
+    {
+        return $this->makeTree($adjacency_list, $index, $id_key, $parent_id_key);
+    }
+
 }
 

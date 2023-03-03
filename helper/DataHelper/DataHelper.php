@@ -16,30 +16,32 @@ class DataHelper
     /**
      */
     public function __construct()
-    {}
-    
-    public static function postGetBody(){
+    {
+    }
+
+    public static function postGetBody()
+    {
         return json_decode(file_get_contents("php://input"), true);
     }
-    
-    public static function getUrlEncodedBody($resultLikeObject = false){
+
+    public static function getUrlEncodedBody($resultLikeObject = false)
+    {
         $data = null;
         parse_str(file_get_contents("php://input"), $data);
-        if(!$resultLikeObject){
+        if (!$resultLikeObject) {
             return $data;
-        }
-        else{
-            $data = (object)$data;
+        } else {
+            $data = (object) $data;
             return $data;
         }
     }
-    
-    public static function getToken(){
+
+    public static function getToken()
+    {
         $headers = null;
         if (isset($_SERVER['Authorization'])) {
             $headers = trim($_SERVER["Authorization"]);
-        }
-        else if (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI
+        } else if (isset($_SERVER['HTTP_AUTHORIZATION'])) { //Nginx or fast CGI
             $headers = trim($_SERVER["HTTP_AUTHORIZATION"]);
         } elseif (function_exists('apache_request_headers')) {
             $requestHeaders = apache_request_headers();
@@ -53,7 +55,7 @@ class DataHelper
         $headers = str_replace("Bearer ", "", $headers);
         return $headers;
     }
-    
+
 
     /**
      * @param array $keys
@@ -65,40 +67,71 @@ class DataHelper
      * This function return "true" if the params in $keys array match the $requestBody, "false" otherwise <br />
      * Throw a PHP Exception if $keys items are not instance of ParamKey class.
      */
-    public static function checkParameters(array $keys, array $requestBody){ 
-        if(count($keys) === 0 && count($requestBody) === 0){
+    public static function checkParameters(array $keys, array $requestBody)
+    {
+        if (count($keys) === 0 && count($requestBody) === 0) {
             return true;
         }
         foreach ($keys as $key) {
-            if($key instanceof ParamKey){
-                if(!isset($requestBody[$key->key])){
-                   return false; 
-                }
-                else if($key->isNullable && $requestBody[$key->key] !== null){
+            if ($key instanceof ParamKey) {
+                if (!isset($requestBody[$key->key])) {
+                    return false;
+                } else if ($key->isNullable && $requestBody[$key->key] !== null) {
+                    return false;
+                } else if ($key->toBeFull && $requestBody[$key->key] === "") {
                     return false;
                 }
-                else if($key->toBeFull && $requestBody[$key->key] === ""){
-                    return false;
-                }
-            }
-            else{
+            } else {
                 throw new \Exception('$keys array items must be instance of ParamKey class.');
             }
         }
-       return true;
+        return true;
     }
 
-    
-    
-    private function makeTree($adjacency_list, $index = 0, $id_key = "id", $parent_id_key = "parent_id", $depth = -1){
+    public static function checkIfSomeParametersInBody(array $keys, array $requestBody)
+    {
+        if (is_array($requestBody)) {
+            try {
+                $dataKeys = array_keys($requestBody);
+                return !empty(array_intersect($keys, $dataKeys));
+            } catch (\Throwable $th) {
+                throw new \Exception($th->getMessage(), 500);
+            }
+        }
+        throw new \Exception("requestBody must be an array.", 500);
+    }
+
+    private function makeTree($adjacency_list, $index = 0, $id_key = "id", $parent_id_key = "parent_id", $depth = -1)
+    {
         $nodeDepth = $depth + 1;
         $node = new \Node($adjacency_list[$index], $nodeDepth, ($index % 2 === 0 ? false : true));
-        for($i = $index; $i < count($adjacency_list); $i++){
-            if($node->node[$id_key] === $adjacency_list[$i][$parent_id_key]){
+        for ($i = $index; $i < count($adjacency_list); $i++) {
+            if ($node->node[$id_key] === $adjacency_list[$i][$parent_id_key]) {
                 $node->addChildren($this->makeTree($adjacency_list, $i, $id_key, $parent_id_key, $nodeDepth));
             }
         }
         return $node;
+    }
+
+    /**
+     * @param string $path_to_remove
+     * 
+     * Recursively delete the given path.
+     */
+    public function rrmdir($path_to_remove)
+    {
+        if (is_dir($path_to_remove)) {
+            $objects = scandir($path_to_remove);
+            foreach ($objects as $object) {
+                if ($object != "." && $object != "..") {
+                    if (is_dir($path_to_remove . DIRECTORY_SEPARATOR . $object) && !is_link($path_to_remove . "/" . $object))
+                        $this->rrmdir($path_to_remove . DIRECTORY_SEPARATOR . $object);
+                    else
+                        unlink($path_to_remove . DIRECTORY_SEPARATOR . $object);
+                }
+            }
+            rmdir($path_to_remove);
+        }
     }
 
     /**
@@ -118,4 +151,3 @@ class DataHelper
     }
 
 }
-

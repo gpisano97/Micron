@@ -135,6 +135,35 @@ class DataHelper
     }
 
     /**
+     * @param $text
+     * 
+     * Generate a server log inside "micron-logs" folder
+     */
+    public static function log(string $text){
+        $log_path = $_SERVER["DOCUMENT_ROOT"] . "/micron-logs/";
+        if(!is_dir($log_path)){
+            mkdir($log_path);
+        }
+        $file_path = $log_path."log.txt";
+        if(file_exists($file_path)){
+            file_put_contents($file_path, date("Y-m-d H:i:s")." - ".$text."\r\n", FILE_APPEND);
+        }
+        else{
+            file_put_contents($file_path, date("Y-m-d H:i:s")." - ".$text."\r\n");
+        }
+    }
+
+    /**
+     * @param int $seconds
+     * 
+     * Convert given seconds in 'h m s' format. 
+     * 
+     */
+    public static function fromSecondsToTime(int $seconds){
+        return intval(($seconds/ 3600))."h ".($seconds/ 60 % 60)."m ".($seconds%60)."s";
+    }
+
+    /**
      * Summary of convertAdjacencyListToNestedObject
      * @param array $adjacency_list
      * @param int $index

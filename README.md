@@ -23,7 +23,7 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 * clone the repo.
 * In `.htaccess` file put your "index file" location. I recommend keeping the default setting.
 * In `config.php` file put your database information.
-* In `JWT/config.php` put your jwt secret key.
+* In `config.php` put your jwt secret key.
 
 ## Utilization
 Be inspierd by `api` folder, when you clone the repo this folder contains a working database-less example for auth, GET and POST request.

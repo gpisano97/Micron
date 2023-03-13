@@ -1,16 +1,13 @@
 <?php
-use helper\Response;
-use helper\DataHelper;
-use JWT\JWT;
-use helper\ParamKey;
+use core\Response;
+use core\DataHelper\DataHelper;
+use core\JWT;
+use core\DataHelper\ParamKey;
 
-include_once 'helper/DataHelper/DataHelper.php';
-include_once 'helper/Response.php';
-include_once 'helper/Database.php';
-include_once 'JWT/JWT.php';
+require_once "micron/Micron.php";
 
 
-function authExample(array $params = []){
+function authExample(Request $request){
  
     //use x-www-form-urlencoded in the request
     
@@ -24,11 +21,11 @@ function authExample(array $params = []){
             1 => new ParamKey("password", true)
         );
         
-        if(DataHelper::checkParameters($keys, $_POST)){
-            
+        if(DataHelper::checkParameters($keys, $request->requestBody)){
+            $body = array("name" => "test", "surname" => "example", "username" => $_POST["username"], "level" => "ADMIN");
             //Make SQL query using Database::ExecQuery($query_string, $params) for check user in DB and return data.
-            $token = new JWT(array("name" => "test", "surname" => "example", "username" => $_POST["username"])); //set the secret encription key on JWT/config.php or use the second parameter
-            $response->created("User is authenticated.", array("token" => $token->getToken()));
+            $token = new JWT($body); //set the secret encription key on JWT/config.php or use the second parameter
+            $response->created("User is authenticated.", array("token" => $token->getToken(), "body" => $body));
             
         }
         else{

@@ -1,5 +1,5 @@
 <?php
-namespace helper;
+namespace core\DataHelper;
 
 require_once 'ParamKey.php';
 require_once 'Node.php';
@@ -118,7 +118,7 @@ class DataHelper
      * 
      * Recursively delete the given path.
      */
-    public function rrmdir($path_to_remove)
+    public function rrmdir(string $path_to_remove)
     {
         if (is_dir($path_to_remove)) {
             $objects = scandir($path_to_remove);
@@ -178,5 +178,8 @@ class DataHelper
     {
         return $this->makeTree($adjacency_list, $index, $id_key, $parent_id_key);
     }
+
+
+
 
 }

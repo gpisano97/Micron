@@ -1,40 +1,84 @@
 <?php
-include_once 'helper/Route.php';
-require_once 'api/example/example.php';
-require_once 'api/auth/authExample.php';
+use core\Response;
+require_once "api/auth/authExample.php";
+require_once "api/example/example.php";
+require_once "micron/Micron.php";
 
 
 $route = new Route();
 
-//GET
-
-$route->get("example/adjacency", function () {
-    exampleAdjacency();
-});
-
-$route->get("example/{param}", function($params){
-    example();
-});
 
 
+$route->enableCORS();
 
-/*$route->get("example/{param_example}", function($params){
-    example($params);
-});*/
+try {
 
+    //GET
+    $route->get("example/adjacency", function () {
+        exampleAdjacency();
+    });
+    
+    $route->get("example", function(){
+        example();
+    });
+    
+    
+    
+    $route->get("example/{param_example}", function($request){
+        example($request->URIparams);
+    });
 
-//POST
-   
-$route->post("authorize", function(){
-    authExample();
-});
- 
+    $route->get("example/request/{param}", function($request){
+        exampleRequestObject($request);
+    }, allowedQueryParams : ["qparam"], middlewareSettings : ["TOKEN_CONTROL" => false]);
+    
+    $route->get("example/databaseclass/table", function(Request $request){
+        readListWithTableFeature($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => true]);
 
+    $route->get("example/databaseclass/table/{id}", function(Request $request){
+        readWithTableFeature($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
+    
+    //POST
+       
+    $route->post("authorize", function($request){
+        authExample($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => false]);
+    
+    $route->post("example/tableinsert", function(){
+        exampleTableInsert();
+    });
 
-//DELETE
+    $route->post("example/databaseclass", function(){
+        exampleDatabaseClass();
+    });
 
+    $route->post("example/databaseclass/sexecquery", function(){
+        exampleSExecQuery();
+    });
+     
+    $route->post("example/databaseclass/table/insert", function(Request $request){
+        insertWithTableFeature($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
+    
+    
+    //DELETE
+    
+    $route->delete("example/databaseclass/table/{id}/delete", function(Request $request){
+        deleteWithTableFeature($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
+    
+    //PUT
 
+    $route->put("example/databaseclass/table/{id}/update", function(Request $request){
+        updateWithTableFeature($request);
+    }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
 
-//PUT
-
-$route->notFound("404.php");
+    
+    $route->notFound("404.php");
+} catch (\Throwable $th) {
+    $response = new Response();
+    $response->response($th->getMessage(), [], false, $th->getCode());
+    exit;
+}

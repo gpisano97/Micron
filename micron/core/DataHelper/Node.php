@@ -1,5 +1,5 @@
 <?php
-
+namespace core\DataHelper;
 
 class Node
 {

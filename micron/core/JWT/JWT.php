@@ -1,7 +1,5 @@
 <?php
-namespace JWT;
-
-include_once 'config.php';
+namespace core;
 
 define("TAMPER_TOKEN_MSG", "Given token is tamper.");
 define("TAMPER_TOKEN_CODE", "9999");
@@ -74,7 +72,7 @@ class JWT
      * @param string $token
      * @param string $secret_key
      * @throws \Exception
-     * @return \JWT\JWT
+     * @return \core\JWT|bool
      * 
      * Decode and validate given token
      * 
@@ -86,6 +84,7 @@ class JWT
             $token_parts = explode(".", $token);
             return new JWT(json_decode(base64url_decode($token_parts[1]) ,true), $secret_key);
         }
+        return false;
     }
     
     /**
@@ -105,7 +104,7 @@ class JWT
         }
         $token_parts = explode(".", $token);
         if(count($token_parts) === 3){
-            //l'header ed il body sono in chiaro, la signature invece ha la chiave segreta quindi non si può replicare facilmente
+            //l'header ed il body sono in chiaro, la signature invece ha la chiave segreta quindi non si puï¿½ replicare facilmente
             //devo prendere header e body e rigenerare la signature con la chiave segreta e poi verificare che la signature arrivata
             //e la signature calcolata siano uguali.
             $calculated_signature = base64url_encode(hash_hmac("sha256", $token_parts[0].".".$token_parts[1], $secret_key));

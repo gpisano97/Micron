@@ -1,6 +1,6 @@
 <?php 
 
-use helper\Response;
+use core\Response;
 
 include_once 'helper/Response.php';
 

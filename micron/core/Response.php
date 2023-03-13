@@ -1,5 +1,5 @@
 <?php
-namespace helper;
+namespace core;
 
 /**
  *
@@ -141,6 +141,32 @@ class Response
         }
         http_response_code($http_code);
         echo json_encode($this->result);
+    }
+
+    /**
+     * Send a response and close the connection with client WHITOUT ending the script.
+     *
+     * @param string $text_for_response
+     * @param bool $response_state
+     * @param int $response_http_code
+     * 
+     * @return void
+     * 
+     */
+    public function responseAndContinueScript(string $text_for_response, bool $response_state = true, int $response_http_code = 200){
+        ob_end_clean();
+        header("Connection: close\r\n");
+        header("Content-Encoding: none\r\n");
+        ignore_user_abort(true); // optional
+        ob_start();
+
+        $this->response($text_for_response, array(), $response_state, $response_http_code);
+
+        $size = ob_get_length();
+        header("Content-Length: $size");
+        ob_end_flush();
+        flush();
+        ob_end_clean();
     }
 }
 

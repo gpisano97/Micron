@@ -41,9 +41,9 @@ Micron is very easy to use, follow this simple steps:
       for example : `Access-Control-Allow-Origin : *` in the array will be `"Access-Control-Allow-Origin" => "*"`.
 * Now define the route according to the desired parameters, (check the example in source code, is very clear). `Route class` has a method for every HTTP method, and you can repeat the same URI with a different method: `$route->get("example", function(){ myGETFunction();});` and `$route->post("example", function(){myPOSTFunction();});` will be two different paths!
 * Is strongly reccomended to follow the REST guidelines in the routes definition:
-  1. `$route->get()` -> retrive resource.
-  2. `$route->post()` -> insert resource.
-  3. `$route->put()` -> modify resource.
+  1. `$route->post()` -> create resource.
+  2. `$route->get()` -> read resource.
+  3. `$route->put()` -> update resource.
   4. `$route->delete()` -> delete resource.
   
 * **Enjoy Micron and check the API section for other useful method!**

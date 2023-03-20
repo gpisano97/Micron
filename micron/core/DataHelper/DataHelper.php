@@ -104,7 +104,7 @@ class DataHelper
     private function makeTree($adjacency_list, $index = 0, $id_key = "id", $parent_id_key = "parent_id", $depth = -1)
     {
         $nodeDepth = $depth + 1;
-        $node = new \Node($adjacency_list[$index], $nodeDepth, ($index % 2 === 0 ? false : true));
+        $node = new Node($adjacency_list[$index], $nodeDepth, ($index % 2 === 0 ? false : true));
         for ($i = $index; $i < count($adjacency_list); $i++) {
             if ($node->node[$id_key] === $adjacency_list[$i][$parent_id_key]) {
                 $node->addChildren($this->makeTree($adjacency_list, $i, $id_key, $parent_id_key, $nodeDepth));
@@ -169,7 +169,7 @@ class DataHelper
      * @param int $index
      * @param string $id_key
      * @param string $parent_id_key
-     * @return \Node
+     * @return Node
      * 
      * Function that convert an Adjacency List Array (common for modelling nested structures in MySQL) into an Object.
      * Every item of the list become a Node Class Object. Every Node has a list of nested childrends.

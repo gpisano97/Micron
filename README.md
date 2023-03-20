@@ -64,6 +64,7 @@ Provides useful methods for retriving data.
 |`checkIfSomeParametersInBody(array $keys, array $requestBody)` | `array<String> $keys` => set of expected keys <br /> `array $requestBody` => array (usually the request body) where to check if has some $keys in it's keys.  | Check if some items of the $keys array is a keys of the $requestBody array. | `bool` |
 | `rrmdir(string $path_to_remove)` | `string $path_to_remove` => a path (on the server's filesystem). | Recursively remove the given path from the server. This function delete both files and folders. | `void` |
 | `log(string $text)` | `string $text` => the text to log. | This function log into a text file the given text. The function will add date and time. The log folder is `/micron-logs` and will be automatically created. | `void` |
+| `fromSecondsToTime(int $seconds)` | `int $seconds` => seconds to convert. | Convert the given seconds in the 'h m s' format. | `string` |
 
 ### Route
 Provides routing method, use this for build your paths.

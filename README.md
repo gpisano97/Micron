@@ -23,27 +23,29 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 * clone the repo.
 * In `.htaccess` file put your "index file" location. I recommend keeping the default setting.
 * In `config.php` file put your database information.
-* In `JWT/config.php` put your jwt secret key.
+* In `config.php` put your jwt secret key.
 
 ## Utilization
 Be inspierd by `api` folder, when you clone the repo this folder contains a working database-less example for auth, GET and POST request.
 Micron is very easy to use, follow this simple steps:
 
-* in `api` folder, create your resource folder and a PHP file with a function (or more like you prefer) inside. If you want to use URI parameters don't forget to define the function parameter like an empty array (`function example(array $params = []){}`)
-* Make sure to require or inlcude the DataHelper and Response classes.
+* Create a resource's php file. To access all Micron functions you only need to require `Micron.php`. In this file put all your resource's functions.
+* Defining a resource function you need to add a funciton parameter of type's Request. In this function parameter you will find all request informations like the request body or the query params.
 * Create a response object from Response class, this provides all methods for JSON responses.
 * Wrap your code with a `try-catch` block, this will help you to manage errors. Every exception throw by the helper classes containts the relative HTTP code, so (just see the example file) in the `catch` section put this code `$response->response($e->getMessage(), array(), false, $e->getCode() );` this will send the exception relative JSON response.
 * in the `try` section put your resource code, make your database code and don't forget to take the token if required (`$token = DataHelper::getToken();`) and verify it (`JWT::verify($token)`);
-* in `index.php` write your route: create an object from Route class (already done in the code) and use his methods to define the route. All methods accept 3 parameters:
+* in `index.php` write your route: create an object from Route class (already done in the code) and use his methods to define the route. All methods accept 5 parameters:
   1. `string $route` -> URI of the resources, can accept multiple parameters in bracket (example `product/{id}` in the `$params` array you will find a key `id` with         the correct value: `product/1` -> $params["id"] will contain `1`.
-  2. `$callback` -> this parameter has to be an anonymous function, and will be a function defined in php files in `api` folder. If you want to use parameters don't         forget the `$params` array.
+  2. `$callback` -> this parameter has to be an anonymous function, and will be a function defined in php files in `api` folder. If you want to access Request data don't forget to pass the $request paramater.
   3. `array $header` put here your headers. There are preconfigured array but don't worry, you can use what header you prefer. The form has to be "header" => "value"
       for example : `Access-Control-Allow-Origin : *` in the array will be `"Access-Control-Allow-Origin" => "*"`.
+  4. `array $allowedQueryParams`, in this array you have to put all the allowed keys passed like variables in the URI.
+  5. `array $middlewareSettings`, you can define 2 keys for this array : TOKEN_CONTROL -> is a boolean value, if true the Middleware will check for the token; TOKEN_AUTH -> is an array, in this array you have to put some keys existent in the token body with the expected value.
 * Now define the route according to the desired parameters, (check the example in source code, is very clear). `Route class` has a method for every HTTP method, and you can repeat the same URI with a different method: `$route->get("example", function(){ myGETFunction();});` and `$route->post("example", function(){myPOSTFunction();});` will be two different paths!
 * Is strongly reccomended to follow the REST guidelines in the routes definition:
-  1. `$route->get()` -> retrive resource.
-  2. `$route->post()` -> insert resource.
-  3. `$route->put()` -> modify resource.
+  1. `$route->post()` -> create resource.
+  2. `$route->get()` -> read resource.
+  3. `$route->put()` -> update resource.
   4. `$route->delete()` -> delete resource.
   
 * **Enjoy Micron and check the API section for other useful method!**
@@ -59,16 +61,20 @@ Provides useful methods for retriving data.
 | `getToken()` | `none` | read the token from the upcoming headers | `string` |
 | `checkParameters()` | `array<ParamKey> $keys` => this array must contains all the body key to check, every array's item is an instance of `ParamKey Class` <br /> `array $requestBody` => the request body (take this with `postGetBody()` | Check if the incoming parameters key is present and if respect the setted constraints | `bool` |
 | `convertAdjacencyListToNestedObject(array $adjacency_list, int $index = 0, string $id_key = "id", string $parent_id_key = "parent_id")` | `array $adjacency_list` => an associative array that models an adjacency list <br /> `int $index = 0` => Starting index, default value is strongly raccomanded <br /> `string $id_key = "id" `=> the id key in the data <br /> `string $parent_id_key = "parent_id"` => the parent id in the data | Make a nested object (tree) starting from an Adjacency List Array | `Node` |
+|`checkIfSomeParametersInBody(array $keys, array $requestBody)` | `array<String> $keys` => set of expected keys <br /> `array $requestBody` => array (usually the request body) where to check if has some $keys in it's keys.  | Check if some items of the $keys array is a keys of the $requestBody array. | `bool` |
+| `rrmdir(string $path_to_remove)` | `string $path_to_remove` => a path (on the server's filesystem). | Recursively remove the given path from the server. This function delete both files and folders. | `void` |
+| `log(string $text)` | `string $text` => the text to log. | This function log into a text file the given text. The function will add date and time. The log folder is `/micron-logs` and will be automatically created. | `void` |
+| `fromSecondsToTime(int $seconds)` | `int $seconds` => seconds to convert. | Convert the given seconds in the 'h m s' format. | `string` |
 
 ### Route
 Provides routing method, use this for build your paths.
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `get()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with GET HTTP method. | `void` |
-| `post()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with POST HTTP method. | `void` |
-| `put()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with PUT HTTP method. | `void` |
-| `delete()` | `string $route` => path for reach the resource <br />  `function $callback` => function to be executed <br /> `array $header` => headers setted by resource in form of `"header" => "value"` | define a route with DELETE HTTP method. | `void` |
+| `get()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored.  | define a route with GET HTTP method. | `void` |
+| `post()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with POST HTTP method. | `void` |
+| `put()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with PUT HTTP method. | `void` |
+| `delete()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with DELETE HTTP method. | `void` |
 | `notFound()` | `string $path` => path of the file to be included | attach a file that manage the "resource not found" case. | `void` |
 | `enableCORS()` | `string $allowedOrigin = "*"` => Parameter for set allowed origin. "*" By default. | Is used for manage the Preflight CORS request. | `void` |
 

@@ -57,6 +57,7 @@ Provides useful methods for retriving data.
 
 | Name | Parameters | Description | Return value |
 | ---- | ---------- | ----------- | ---------------- |
+| `__construct()` | `none` | Create a new object of DataHelper | `DataHelper` |
 | `postGetBody()` | `none` | read the data upcoming in the body from the php input | `array` |
 | `getToken()` | `none` | read the token from the upcoming headers | `string` |
 | `checkParameters()` | `array<ParamKey> $keys` => this array must contains all the body key to check, every array's item is an instance of `ParamKey Class` <br /> `array $requestBody` => the request body (take this with `postGetBody()` | Check if the incoming parameters key is present and if respect the setted constraints | `bool` |

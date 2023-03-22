@@ -95,6 +95,8 @@ Provides an useful set of JSON responses with preconfigured HTTP code or complet
 | `internalServerError()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 500, set "state key" in response to `false` | `void` |
 | `notImplemented()` | `string $message` => message that will be displayed in response JSON | display a JSON response and set the HTTP Code 501, set "state key" in response to `false` | `void` |
 | `response()` | `string $message` => message that will be displayed in response JSON <br /> `array $data` => data that will be returned in response JSON <br /> `bool $state` => boolean rappresentation of call success <br /> `int $http_code` => HTTP code to be setted | display a JSON response configured with given parameters | `void` |
+| `responseAndContinueScript(string $text_for_response, bool $response_state = true, int $response_http_code = 200)` | `string $text_for_response` => message that will be displayed in response JSON <br />  `bool $response_state` => boolean rappresentation of call success <br /> `int $response_http_code` => HTTP code to be setted | send a JSON response without ending the script. The connection with the client will be closed but the script execution will continue. | `void` |
+
 
 ### JWT (JSON Web Token)
 Class that manage JWT tokens. All the methods throw Exceptions on errors. The exception code will be the HTTP Code relative to the error occured.

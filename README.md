@@ -81,10 +81,15 @@ Provides routing method, use this for build your paths.
 | `enableCORS()` | `string $allowedOrigin = "*"` => Parameter for set allowed origin. "*" By default. | Is used for manage the Preflight CORS request. | `void` |
 
 ### Request
-Provides all the information of a Micron Request.
+Provides all the information of a Micron Request. And object of this class will be passed to the callback function in the various routing functions. Usually this class is instantiated by the Micron's Middleware, so you should not create an object of this class, you have only to use it in your callback functions.
 
-| Name | Description |
-| ---- | ----------- |
+| Name | Type | Description |
+| ---- | ---- | ----------- |
+| `Uri` | `string` | Uri of the incoming request |
+| `method` | `string` | Http method of the incoming request |
+| `URIparams` | `array` | This array will contains the uri params with the values. E.g. `request/{id}/{param}`, the URIparams array will be ['id' => idvalue, 'param' => paramValue] |
+| `requestBody` | `array` | The body of the incoming request. This array contains all possible body, so Raw body, $_FILES and the query params |
+| `authTokenBody` | `array` | The body of the token, if present and if validate. |
 
 ### Response
 Provides an useful set of JSON responses with preconfigured HTTP code or completely configurable JSON response.

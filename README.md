@@ -88,7 +88,7 @@ Provides all the information of a Micron Request. And object of this class will 
 | `Uri` | `string` | Uri of the incoming request |
 | `method` | `string` | Http method of the incoming request |
 | `URIparams` | `array` | This array will contains the uri params with the values. E.g. `request/{id}/{param}`, the URIparams array will be ['id' => idvalue, 'param' => paramValue] |
-| `requestBody` | `array` | The body of the incoming request. This array contains all possible body, so Raw body, $_FILES and the query params |
+| `requestBody` | `array` | The body of the incoming request. This array contains all possible body, so Raw body, `$_FILES` and the query params |
 | `authTokenBody` | `array` | The body of the token, if present and if validate. |
 
 ### Response

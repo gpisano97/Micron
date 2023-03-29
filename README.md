@@ -131,6 +131,15 @@ Manage MySQL Database connection and interaction, extends PDO and you can access
 | `getTableScheme(string $tableName)` | `string $tableName` | Return the fields of the given table if exist in the Database. Throw exception for non valid table. | `array` |
 | `Table(string $tableName)` | `string $tableName` | Return a model of the table by the table name. If the table not exist will throw an exception | `DBTable` |
 
+### DBTable
+Manage MySQL Database connection and interaction, extends PDO and you can access all PDO's functions.
+
+| Name | Prameters | Description | Return value |
+| ---- | --------- | ----------- | ---------------- |
+| `__construct()` | `Database $database` </br> `string $tableName` | Create new Table object | `DBTable` |
+
+
+
 ## Inspiration 
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  
 

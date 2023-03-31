@@ -6,6 +6,7 @@ require_once 'Request.php';
 
 use core\DataHelper\DataHelper;
 use core\JWT;
+
 /**
  * Summary of Route
  */
@@ -32,71 +33,63 @@ class Route
         $this->middlewareConfig = $defaultMiddlewareConfig;
     }
 
-    private function Middleware($config, $URIparams = [], $queryParams = []){
+    private function Middleware($config, $URIparams = [], $queryParams = [])
+    {
 
         $token = DataHelper::getToken();
-        if(isset($config["TOKEN_CONTROL"]) && $config["TOKEN_CONTROL"]){
-            if(empty($token)){
+        if (isset($config["TOKEN_CONTROL"]) && $config["TOKEN_CONTROL"]) {
+            if (empty($token)) {
                 throw new Exception("Missing auth token.", 400);
             }
             $token = JWT::decode($token);
-            if(isset($config['TOKEN_AUTH'])){
-                if(gettype($config['TOKEN_AUTH']) !== 'array'){
+            if (isset($config['TOKEN_AUTH'])) {
+                if (gettype($config['TOKEN_AUTH']) !== 'array') {
                     throw new Exception("Bad middleware's TOKEN_AUTH config: value is not an array.", 500);
                 }
 
                 foreach ($config['TOKEN_AUTH'] as $tokenBodyParam => $checkingValue) {
-                    if(!isset($token->getBody()[$tokenBodyParam])){
+                    if (!isset($token->getBody()[$tokenBodyParam])) {
                         throw new Exception("Bad middleware's TOKEN_AUTH config: param {$tokenBodyParam} is not in Token Body.", 500);
                     }
 
-                    if($token->getBody()[$tokenBodyParam] !== $checkingValue){
+                    if ($token->getBody()[$tokenBodyParam] !== $checkingValue) {
                         throw new Exception("Insufficent permissions.", 401);
                     }
                 }
             }
         }
 
-        //thinking if include this piece of code
-/*         $headers = getallheaders();
-        $contentType = "text/json";
-        if(isset($header["Content-Type"]) && in_array($headers["Content-Type"], $this->allowedContentType)){
-            $contentType = $headers["Content-Type"];
-        }
-        else{
-            $contentType = "";
-        }
-
-        $requestBody = [];
-        switch ($contentType) {
-            case 'text/json':
-            case 'application/json':
-                $requestBody = DataHelper::postGetBody();
-                break;
-        } */
-
         $requestBody = DataHelper::postGetBody();
-        if($requestBody === null){
+        if ($requestBody === null) {
             $requestBody = [];
         }
         $requestBody = array_merge($requestBody, $_POST, $_FILES);
-        if(count($queryParams) > 0){
-            foreach ($queryParams as $param) {
-                if(isset($requestBody[$param])){
-                    $requestBody[$param."_Query"] = $_GET[$param];
+
+        $qParams = [];
+        $queryParamsKeys = array_keys($queryParams);
+        $queryParamTypes = ["numeric", "string"];
+        foreach ($queryParamsKeys as $param) {
+            if (isset($_GET[$param])) {
+                if( !in_array($queryParams[$param], $queryParamTypes)){
+                    throw new Exception("Query param type for {$param} not allowed, can be 'string' or 'numeric' ", 400);
                 }
-                else{
-                    $requestBody[$param] = $_GET[$param];
+                if( (is_numeric($_GET[$param]) && $queryParams[$param] === "numeric" ) || (!is_numeric($_GET[$param]) && $queryParams[$param] === "string")){
+                    $qParams[$param] = $_GET[$param];
+                }
+                else {
+                    throw new Exception("Query param value for {$param} not allowed, should be : {$queryParams[$param]}", 400);
                 }
             }
         }
-        if(gettype($token) !== "string"){
+
+
+        if (gettype($token) !== "string") {
             $token = $token->getBody();
-        }
-        else{
+        } else {
             $token = [];
         }
-        $request = new Request($_REQUEST["uri"], $_SERVER["REQUEST_METHOD"], $URIparams, $requestBody, $token);
+
+        $request = new Request($_REQUEST["uri"], $_SERVER["REQUEST_METHOD"], $URIparams, $requestBody, $token, $qParams);
         return $request;
     }
 
@@ -112,7 +105,7 @@ class Route
         }
 
         if ($reqUri == $route) {
-            $callback($this->Middleware($middlewareSettings, queryParams : $queryParams));
+            $callback($this->Middleware($middlewareSettings, queryParams: $queryParams));
             exit();
         }
 
@@ -143,8 +136,18 @@ class Route
             return;
         }
 
+        $paramAllowedTypes = ["string", "numeric"];
+        $paramType = [];
         foreach ($paramMatches[0] as $key) {
-            $paramKey[] = $key;
+            $keyExsposion = explode(":", $key); 
+            $paramKey[] = $keyExsposion[0];
+            if(!isset($keyExsposion[1])){
+                throw new Exception("Missing type for {$keyExsposion[0]} path param.", 500);
+            }
+            if(!in_array($keyExsposion[1], $paramAllowedTypes)){
+                throw new Exception("Unricognized type for {$keyExsposion[0]} path param. Use 'string' or 'numeric'", 500);
+            }
+            $paramType[] =  $keyExsposion[1] ; 
         }
 
         if (!empty($_REQUEST['uri'])) {
@@ -157,7 +160,7 @@ class Route
         $uri = explode("/", $route);
 
         $indexNum = [];
-
+       
         foreach ($uri as $index => $param) {
             if (preg_match("/{.*}/", $param)) {
                 $indexNum[] = $index;
@@ -173,7 +176,12 @@ class Route
             }
 
             if (isset($reqUri[$index])) {
-                $params[$paramKey[$key]] = $reqUri[$index];
+                if((is_numeric($reqUri[$index]) && $paramType[$key] === "numeric") || (!is_numeric($reqUri[$index]) && $paramType[$key] === "string")){
+                    $params[$paramKey[$key]] = $reqUri[$index];
+                }
+                else{
+                    return;
+                }
             }
 
 
@@ -184,7 +192,7 @@ class Route
 
         $reqUri = str_replace("/", '\\/', $reqUri);
 
-        if (preg_match("/$reqUri/", $route)) {        
+        if (preg_match("/$reqUri/", $route)) {
             $callback($this->Middleware($middlewareSettings, $params, $queryParams));
             exit();
         }
@@ -211,7 +219,7 @@ class Route
     public function get($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
     {
         if ($_SERVER["REQUEST_METHOD"] === "GET") {
-            $this->navigate($route, $callback, "GET", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams : $allowedQueryParams);
+            $this->navigate($route, $callback, "GET", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
         }
     }
 
@@ -236,7 +244,7 @@ class Route
     {
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
-            $this->navigate($route, $callback, "POST", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams : $allowedQueryParams);
+            $this->navigate($route, $callback, "POST", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
         }
     }
 
@@ -260,7 +268,7 @@ class Route
     public function delete($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
     {
         if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
-            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams : $allowedQueryParams);
+            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
         }
     }
 
@@ -284,7 +292,7 @@ class Route
     public function put($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
     {
         if ($_SERVER["REQUEST_METHOD"] === "PUT") {
-            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams : $allowedQueryParams);
+            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
         }
     }
 
@@ -305,16 +313,17 @@ class Route
      * 
      * 
      */
-    public function enableCORS($allowedOrigin = "*", $allowedContentType = ["application/json", "text/json"]){
-        $this->allowedCORSUrl=$allowedOrigin;
+    public function enableCORS($allowedOrigin = "*", $allowedContentType = ["application/json", "text/json"])
+    {
+        $this->allowedCORSUrl = $allowedOrigin;
         $this->CORSEnabled = true;
         $header = getallheaders();
         $contentType = "text/json";
-        if(isset($header["Content-Type"]) && in_array($header["Content-Type"], $allowedContentType)){
+        if (isset($header["Content-Type"]) && in_array($header["Content-Type"], $allowedContentType)) {
             $contentType = $header["Content-Type"];
         }
 
-        if($_SERVER["REQUEST_METHOD"] === "OPTIONS"){
+        if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
             http_response_code(204);
             header("Access-Control-Allow-Origin: {$allowedOrigin}");
             header("Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE");

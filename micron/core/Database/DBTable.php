@@ -1,6 +1,11 @@
 <?php
+namespace core\Database;
 
+use core\Database;
 use core\DataHelper\DataHelper;
+use Exception;
+use PDO;
+use stdClass;
 
 require_once "Database.php";
 require_once "micron/core/DataHelper/DataHelper.php";
@@ -28,13 +33,26 @@ class DBTable
      * @param string $tableName
      * 
      */
-    public function __construct(Database $database, string $tableName)
+    public function __construct(Database $database, string $tableName /* , stdClass $model = null */)
     {
         $this->database = $database;
         $this->tableName = $tableName;
 
-        $scheme = $this->database->getTableScheme($this->tableName);
-        $this->tableScheme = $scheme;
+        try {
+            $scheme = $this->database->getTableScheme($this->tableName);
+            $this->tableScheme = $scheme;
+        } catch (\Throwable $th) {
+            if ($th->getCode() === 404) {
+                /*                 if($model === null){ */
+                throw new Exception($th->getMessage(), $th->getCode());
+                /*                 }
+                else{
+                //creating the table using the model
+                } */
+            } else {
+                throw new Exception($th->getMessage(), ($th->getCode() === null ? 500 : $th->getCode()));
+            }
+        }
     }
 
 
@@ -95,51 +113,42 @@ class DBTable
      * N.B. A pair "value - comparison" is concatenated with the other through an AND operator.
      * 
      */
-/*     public function delete(array $options = array("values" => [], "comparisons" => []))
+    /*     public function delete(array $options = array("values" => [], "comparisons" => []))
     {
-        //get the fields
-        $fields = array_keys($options["values"]);
-
-        //Checking if some comparison is setted
-        if (count($fields) === 0) {
-            trigger_error("Warning, you are deleting all the table rows.");
-        }
-
-        //Checking if fields exist in table scheme.
-        foreach ($fields as $field) {
-            if (!in_array($field, $this->tableScheme)) {
-                throw new Exception("You must specify only existent fields.");
-            }
-        }
-
-        //Checking if comparisons keys are coerents with values keys
-        $comparisonsKeys = array_keys($options["comparisons"]);
-        if (count(array_intersect($fields, $comparisonsKeys)) !== count($fields)) {
-            throw new Exception("Values keys and comparisons keys are incoerent.");
-        }
-
-        $query = "DELETE FROM {$this->tableName} WHERE ";
-
-        foreach ($fields as $field) {
-            switch ($options["comparisons"][$field]) {
-                case EQUAL:
-                    $query .= " {$field} = :{$field} AND";
-                    break;
-                case NOTEQUAL:
-                    $query .= " {$field} <> :{$field} AND";
-                    break;
-                case LIKE:
-                    $query .= " {$field} LIKE :{$field} AND";
-                    break;
-                default:
-                    throw new Exception("Use for comparison only the constants: EQUAL, NOTEQUAL, LIKE", 400);
-            }
-        }
-
-        $query = rtrim($query, "AND");
-
-
-
+    //get the fields
+    $fields = array_keys($options["values"]);
+    //Checking if some comparison is setted
+    if (count($fields) === 0) {
+    trigger_error("Warning, you are deleting all the table rows.");
+    }
+    //Checking if fields exist in table scheme.
+    foreach ($fields as $field) {
+    if (!in_array($field, $this->tableScheme)) {
+    throw new Exception("You must specify only existent fields.");
+    }
+    }
+    //Checking if comparisons keys are coerents with values keys
+    $comparisonsKeys = array_keys($options["comparisons"]);
+    if (count(array_intersect($fields, $comparisonsKeys)) !== count($fields)) {
+    throw new Exception("Values keys and comparisons keys are incoerent.");
+    }
+    $query = "DELETE FROM {$this->tableName} WHERE ";
+    foreach ($fields as $field) {
+    switch ($options["comparisons"][$field]) {
+    case EQUAL:
+    $query .= " {$field} = :{$field} AND";
+    break;
+    case NOTEQUAL:
+    $query .= " {$field} <> :{$field} AND";
+    break;
+    case LIKE:
+    $query .= " {$field} LIKE :{$field} AND";
+    break;
+    default:
+    throw new Exception("Use for comparison only the constants: EQUAL, NOTEQUAL, LIKE", 400);
+    }
+    }
+    $query = rtrim($query, "AND");
     } */
 
     /**
@@ -157,12 +166,12 @@ class DBTable
         $checkIfRowExistQeury = " SELECT * FROM {$this->tableName} WHERE {$rowIdenfingCondition}";
         $checkResult = $this->database->ExecQuery($checkIfRowExistQeury, $rowIdenfingConditionValues);
 
-        if($checkResult->rowCount() === 0){
+        if ($checkResult->rowCount() === 0) {
             throw new Exception("Row in {$this->tableName} table not found.", 404);
         }
 
-        if($checkResult->rowCount() > 1){
-           trigger_error("Warning, you are deleting more than a row.");
+        if ($checkResult->rowCount() > 1) {
+            trigger_error("Warning, you are deleting more than a row.");
         }
 
         $query = "DELETE FROM {$this->tableName} WHERE {$rowIdenfingCondition} ";
@@ -180,18 +189,18 @@ class DBTable
      * @return array
      * 
      */
-    public function read(string $rowIdenfingCondition = "", array $rowIdenfingConditionValues = []){
+    public function read(string $rowIdenfingCondition = "", array $rowIdenfingConditionValues = [])
+    {
 
-        $query = "SELECT * FROM {$this->tableName} ".($rowIdenfingCondition !== "" ? " WHERE " : "")." ".$rowIdenfingCondition;
+        $query = "SELECT * FROM {$this->tableName} " . ($rowIdenfingCondition !== "" ? " WHERE " : "") . " " . $rowIdenfingCondition;
         $result = $this->database->ExecQuery($query, $rowIdenfingConditionValues);
-        if($result->rowCount() === 0){
+        if ($result->rowCount() === 0) {
             throw new Exception("Any row found.", 404);
         }
         $data = [];
-        if($result->rowCount() === 1){
+        if ($result->rowCount() === 1) {
             $data = $result->fetch(PDO::FETCH_ASSOC);
-        }
-        else{
+        } else {
             $data = $result->fetchAll(PDO::FETCH_ASSOC);
         }
 
@@ -207,26 +216,26 @@ class DBTable
      * @throws Exception
      * @return int
      */
-    public function update(string $rowIdenfingCondition, array $rowIdenfingConditionValues, array $body){
+    public function update(string $rowIdenfingCondition, array $rowIdenfingConditionValues, array $body)
+    {
 
         //removing unwanted keys, only existent fields
         $intruderFound = false;
         $fields = "";
         $tableScheme = $this->getTableScheme();
         foreach ($body as $field => $value) {
-            if(in_array($field, $tableScheme)){
+            if (in_array($field, $tableScheme)) {
                 //modifing the key for avoiding problems with rowIdenfingConditionValues
-                $fields .= $field." = :b_{$field} ,";
-                $body["b_".$field] = $value;
+                $fields .= $field . " = :b_{$field} ,";
+                $body["b_" . $field] = $value;
                 unset($body[$field]);
-            }
-            else{
+            } else {
                 $intruderFound = true;
                 unset($body[$field]);
             }
         }
 
-        if($intruderFound){
+        if ($intruderFound) {
             trigger_error("Warning, check your request body, there are not in scheme fields.");
         }
 
@@ -234,7 +243,7 @@ class DBTable
 
         $params = array_merge($rowIdenfingConditionValues, $body);
 
-        $query = "UPDATE {$this->tableName} SET {$fields} ".($rowIdenfingCondition !== "" ? " WHERE " : "").$rowIdenfingCondition;
+        $query = "UPDATE {$this->tableName} SET {$fields} " . ($rowIdenfingCondition !== "" ? " WHERE " : "") . $rowIdenfingCondition;
 
         $updateResult = $this->database->ExecQuery($query, $params);
 

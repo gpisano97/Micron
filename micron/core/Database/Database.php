@@ -1,5 +1,10 @@
 <?php
-
+namespace core;
+use core\Database\DBTable;
+use Exception;
+use PDO;
+use PDOException;
+use PDOStatement;
 
 include_once $_SERVER["DOCUMENT_ROOT"] . '/config.php';
 
@@ -30,8 +35,8 @@ class Database extends PDO
      * @param string $query -> example : SELECT * FROM table WHERE id = :id
      * @param array $params -> example (using the $query example) : ["id" => $id]
      * 
-     * @return PDOStatement
-     * @throws Exception
+     * @return \PDOStatement
+     * @throws \Exception
      * 
      * Execute a query on the Database.
      */
@@ -76,7 +81,7 @@ class Database extends PDO
     public static function SExecQuery($query_string, $params = [])
     {
         try {
-            $db = new \Database();
+            $db = new Database();
             $q_p = $db->prepare($query_string);
             $exec = $q_p->execute($params);
             unset($db);

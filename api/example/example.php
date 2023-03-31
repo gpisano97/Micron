@@ -1,4 +1,5 @@
 <?php
+use core\Database;
 use core\Response;
 use core\DataHelper\DataHelper;
 use core\JWT;
@@ -39,7 +40,7 @@ function exampleRequestObject(Request $request){
     try {
         $response = new Response();
 
-        $response->success("Uri param : {$request->URIparams["param"]}, Query Param : {$request->requestBody["qparam"]}");
+        $response->success("Uri param : {$request->URIparams["param"]}, Query Param : {$request->queryParams["qparam"]}");
         
     } catch (Exception $e) {
         $response->response($e->getMessage(), array(), false, $e->getCode() );
@@ -72,7 +73,7 @@ function exampleTableInsert(){
         $insertBody = array(
             "description" => "example"
         );
-        $id = $table->insert($insertBody);
+        $id = $table->create($insertBody);
         $response->created("Insert in table completed with id : {$id}");
     } catch (\Throwable $th) {
         $response->response($th->getMessage(), array(), false, $th->getCode() );

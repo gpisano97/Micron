@@ -24,19 +24,26 @@ try {
     
     
     
-    $route->get("example/{param_example}", function($request){
+    $route->get("example/{param_example:string}", function($request){
         example($request->URIparams);
     });
 
-    $route->get("example/request/{param}", function($request){
+
+    $route->get("example/request/{param:string}", function($request){
         exampleRequestObject($request);
-    }, allowedQueryParams : ["qparam"], middlewareSettings : ["TOKEN_CONTROL" => false]);
+    }, allowedQueryParams : ["qparam" => "string"], middlewareSettings : ["TOKEN_CONTROL" => false]);
+
+
+    $route->get("example/request/{param:numeric}", function($request){
+        exampleRequestObject($request);
+    }, allowedQueryParams : ["qparam" => "string"], middlewareSettings : ["TOKEN_CONTROL" => false]);
+
     
     $route->get("example/databaseclass/table", function(Request $request){
         readListWithTableFeature($request);
     }, middlewareSettings : ["TOKEN_CONTROL" => true]);
 
-    $route->get("example/databaseclass/table/{id}", function(Request $request){
+    $route->get("example/databaseclass/table/{id:numeric}", function(Request $request){
         readWithTableFeature($request);
     }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
     
@@ -65,13 +72,13 @@ try {
     
     //DELETE
     
-    $route->delete("example/databaseclass/table/{id}/delete", function(Request $request){
+    $route->delete("example/databaseclass/table/{id:numeric}/delete", function(Request $request){
         deleteWithTableFeature($request);
     }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
     
     //PUT
 
-    $route->put("example/databaseclass/table/{id}/update", function(Request $request){
+    $route->put("example/databaseclass/table/{id:numeric}/update", function(Request $request){
         updateWithTableFeature($request);
     }, middlewareSettings : ["TOKEN_CONTROL" => true, "TOKEN_AUTH" => ["level" => "ADMIN"]]);
 

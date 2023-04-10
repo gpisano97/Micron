@@ -3,3 +3,4 @@
 .buildpath
 .project
 .settings/org.eclipse.php.core.prefs
+.vscode/launch.json

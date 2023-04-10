@@ -23,7 +23,7 @@ class Database extends PDO
     public function __construct(bool $auto_rollback = true)
     {
         try {
-            PDO::__construct("mysql:host=" . $this->host . ";dbname=" . $this->database_name, $this->username, $this->password);
+            parent::__construct("mysql:host=" . $this->host . ";dbname=" . $this->database_name, $this->username, $this->password);
             $this->auto_rollback = $auto_rollback;
         } catch (PDOException $exception) {
             throw new Exception("Database connection error: " . $exception->getMessage(), 500);

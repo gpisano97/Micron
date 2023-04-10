@@ -1,5 +1,6 @@
 <?php
 namespace core;
+use Exception;
 
 /**
  *
@@ -167,6 +168,25 @@ class Response
         ob_end_flush();
         flush();
         ob_end_clean();
+    }
+
+    public function provideFile(string $filePath, string $disposition = 'attachment'){
+        $allowedDisposition = ['attachment', 'inline'];
+
+        if(!in_array($disposition, $allowedDisposition)){
+            throw new Exception("Error, invalid disposition value.", 500);
+        }
+        
+        if(!is_file($filePath)){
+            throw new Exception("File not found.", 404);
+        }
+        $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        $filename = pathinfo($filePath, PATHINFO_FILENAME);
+        $contentType = mime_content_type($filePath);
+        header("Content-type:{$contentType}");
+        header("Content-Disposition:{$disposition};filename=\"{$filename}.{$extension}\"");
+        http_response_code(200);
+        readfile($filePath);
     }
 }
 

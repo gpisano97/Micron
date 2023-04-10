@@ -43,7 +43,10 @@ try {
         example();
     });
     
-    
+    $route->get("home", function(){
+        $response = new Response();
+        $response->provideFile('test.html', "inline");
+    }, middlewareSettings : ["TOKEN_CONTROL" => false]);
     
     $route->get("example/{param_example:string}", function(Request $request){
         example($request->URIparams);

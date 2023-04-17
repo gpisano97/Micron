@@ -24,18 +24,22 @@ class Route
      * @param array $defaultMiddlewareConfig = [ 
      *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
      *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value 
+     *      'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']
      * ]
      * @param mixed 
      * 
      */
-    public function __construct(array $defaultMiddlewareConfig = ['TOKEN_CONTROL' => true])
+    public function __construct(array $defaultMiddlewareConfig = ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']])
     {
         $this->middlewareConfig = $defaultMiddlewareConfig;
+        if(!isset($this->middlewareConfig['ACCEPTED_CONTENT_TYPE'])){
+            $this->middlewareConfig['ACCEPTED_CONTENT_TYPE'] = ['application/json', 'text/json'];
+        }
     }
 
     private function Middleware($config, $URIparams = [], $queryParams = [])
     {
-
+        //JWT Token Control
         $token = DataHelper::getToken();
         if (isset($config["TOKEN_CONTROL"]) && $config["TOKEN_CONTROL"]) {
             if (empty($token)) {
@@ -59,6 +63,23 @@ class Route
             }
         }
 
+        //Request Content-Type Control
+        $acceptedContentType = [];
+        //Loading default if not set
+        if(!isset($config['ACCEPTED_CONTENT_TYPE'])){
+            $acceptedContentType = $this->middlewareConfig['ACCEPTED_CONTENT_TYPE'];
+        }
+        else{
+            $acceptedContentType = $config['ACCEPTED_CONTENT_TYPE'];
+        }
+
+        $headers = getallheaders();
+
+        if(!in_array($headers['Content-Type'], $acceptedContentType)){
+            throw new Exception("Invalid request content type. Allowed content type for this route ".(count($acceptedContentType) > 1 ? "are" : "is")." :  ".(count($acceptedContentType) > 0 ? implode($acceptedContentType, ",") : "none"), 400);
+        }
+
+        //Operations on incoming datas
         $requestBody = DataHelper::postGetBody();
         if ($requestBody === null) {
             $requestBody = [];

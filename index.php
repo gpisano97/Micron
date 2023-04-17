@@ -1,5 +1,6 @@
 <?php
 use core\Response;
+use core\Users;
 require_once "api/auth/authExample.php";
 require_once "api/example/example.php";
 require_once "micron/Micron.php";
@@ -12,6 +13,10 @@ $route = new Route();
 $route->enableCORS();
 
 try {
+
+    $userManagement = new Users();
+    $userManagement->listen($route);
+    
 
     //GET
     $route->get("example/adjacency", function () {

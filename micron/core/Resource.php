@@ -4,7 +4,7 @@ namespace core;
 use Route;
 use Request;
 
-include_once 'core/Micron.php';
+include_once 'micron/Micron.php';
 
 /**
  * Summary of Resource

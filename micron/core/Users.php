@@ -28,10 +28,10 @@ class Users implements Resource
 
         $query = "CREATE TABLE IF NOT EXISTS `users` (
             `user_id` INT NOT NULL AUTO_INCREMENT,
-            `username` VARCAHR(50) NOT NULL DEFAULT '0',
-            `email` VARCAHR(100) NOT NULL DEFAULT '',
-            `name` VARCAHR(50) NOT NULL DEFAULT '',
-            `surname` VARCAHR(50) NOT NULL DEFAULT '',
+            `username` VARCHAR(50) NOT NULL DEFAULT '0',
+            `email` VARCHAR(100) NOT NULL DEFAULT '',
+            `name` VARCHAR(50) NOT NULL DEFAULT '',
+            `surname` VARCHAR(50) NOT NULL DEFAULT '',
             " . (defined(USER_LEVELS) ? "`level` ENUM(" . USER_LEVELS . ")" : "") . "
             PRIMARY KEY (`user_id`),
             UNIQUE INDEX `username` (`username`),
@@ -44,7 +44,7 @@ class Users implements Resource
 
         $query = "CREATE TABLE IF NOT EXISTS `users_passwords` (
             `user_id` INT NOT NULL,
-            `password` VARCAHR(300) NULL,
+            `password` VARCHAR(300) NULL,
             PRIMARY KEY (`user_id`),
             CONSTRAINT `users_passwords_references_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE ON DELETE CASCADE
         )
@@ -251,7 +251,7 @@ class Users implements Resource
             $this->read($request);
         });
 
-        $router->get("users/{user_id:integer}", function(Request $request){
+        $router->get("users/{user_id:numeric}", function(Request $request){
             $this->read($request);
         });
 
@@ -262,18 +262,18 @@ class Users implements Resource
         });
 
         //PUT 
-        $router->put("users/{user_id:integer}/resetpassword", function(Request $request){
+        $router->put("users/{user_id:numeric}/resetpassword", function(Request $request){
             $this->resetPassword($request->URIparams["user_id"]);
-        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => []]);
+        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']]);
 
-        $router->put("users/{user_id:integer}", function(Request $request){
+        $router->put("users/{user_id:numeric}", function(Request $request){
             $this->update($request);
         }); 
 
         //DELETE
 
-        $router->delete("users/{user_id:integer}", function(Request $request){
+        $router->delete("users/{user_id:numeric}", function(Request $request){
             $this->delete($request->URIparams["user_id"]);
-        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => []]);
+        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']]);
     }
 }

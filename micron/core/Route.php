@@ -3,55 +3,49 @@
 require_once 'DataHelper/DataHelper.php';
 require_once 'JWT/JWT.php';
 require_once 'Request.php';
+require_once 'MiddlewareConfiguration.php';
 
 use core\DataHelper\DataHelper;
 use core\JWT;
+use core\MiddlewareConfiguration;
 
 /**
- * Summary of Route
+ * Main component of Micron Framework. This class allow to register Routes with methods and requests behavior.
  */
 class Route
 {
 
     private $allowedCORSUrl = "*";
     private $CORSEnabled = false;
-    private $middlewareConfig = [];
+    private MiddlewareConfiguration $middlewareConfig;
     private $allowedContentType = ["application/json", "text/json"];
 
     /**
      * Initialize Micron Framework
      *
-     * @param array $defaultMiddlewareConfig = [ 
-     *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
-     *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value 
-     *      'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']
-     * ]
+     * @param MiddlewareConfiguration $defaultMiddlewareConfig A MiddlewareConfiguration Object, this set the default behavior of the Micron Middleware.
      * @param mixed 
      * 
      */
-    public function __construct(array $defaultMiddlewareConfig = ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']])
+    public function __construct(MiddlewareConfiguration $defaultMiddlewareConfig = new MiddlewareConfiguration())
     {
         $this->middlewareConfig = $defaultMiddlewareConfig;
-        if(!isset($this->middlewareConfig['ACCEPTED_CONTENT_TYPE'])){
-            $this->middlewareConfig['ACCEPTED_CONTENT_TYPE'] = ['application/json', 'text/json'];
-        }
     }
 
-    private function Middleware($config, $URIparams = [], $queryParams = [])
+    private function Middleware(MiddlewareConfiguration $config, $URIparams = [], $queryParams = [])
     {
         //JWT Token Control
         $token = DataHelper::getToken();
-        if (isset($config["TOKEN_CONTROL"]) && $config["TOKEN_CONTROL"]) {
+        if ($config->getTokenControl()) {
             if (empty($token)) {
                 throw new Exception("Missing auth token.", 400);
             }
             $token = JWT::decode($token);
-            if (isset($config['TOKEN_AUTH'])) {
-                if (gettype($config['TOKEN_AUTH']) !== 'array') {
-                    throw new Exception("Bad middleware's TOKEN_AUTH config: value is not an array.", 500);
-                }
 
-                foreach ($config['TOKEN_AUTH'] as $tokenBodyParam => $checkingValue) {
+            $tokenAuthorizedParams = $config->getTokenBodyAuthorizedValues(); 
+            if (count($tokenAuthorizedParams) > 0) {
+
+                foreach ($tokenAuthorizedParams as $tokenBodyParam => $checkingValue) {
                     if (!isset($token->getBody()[$tokenBodyParam])) {
                         throw new Exception("Bad middleware's TOKEN_AUTH config: param {$tokenBodyParam} is not in Token Body.", 500);
                     }
@@ -64,19 +58,11 @@ class Route
         }
 
         //Request Content-Type Control
-        $acceptedContentType = [];
-        //Loading default if not set
-        if(!isset($config['ACCEPTED_CONTENT_TYPE'])){
-            $acceptedContentType = $this->middlewareConfig['ACCEPTED_CONTENT_TYPE'];
-        }
-        else{
-            $acceptedContentType = $config['ACCEPTED_CONTENT_TYPE'];
-        }
+        $acceptedContentType = $config->getAcceptedContentType();
 
         $headers = getallheaders();
-
-        if(!in_array($headers['Content-Type'], $acceptedContentType)){
-            throw new Exception("Invalid request content type. Allowed content type for this route ".(count($acceptedContentType) > 1 ? "are" : "is")." :  ".(count($acceptedContentType) > 0 ? implode($acceptedContentType, ",") : "none"), 400);
+        if(!in_array( (isset($headers['Content-Type']) ? $headers['Content-Type'] : 'none'), $acceptedContentType)){
+            throw new Exception("Invalid request content type. Allowed content type for this route ".(count($acceptedContentType) > 1 ? "are" : "is")." :  ".(count($acceptedContentType) > 0 ? implode(array:$acceptedContentType, separator: ", ") : "none"), 400);
         }
 
         //Operations on incoming datas
@@ -223,49 +209,41 @@ class Route
     /**
      * Add a GET method route
      *
-     * @param mixed $route
-     * @param mixed $callback
-     * @param array $headers
-     * @param array $middlewareSettings = [ 
-     *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
-     *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value
-     * ]
-     * @param array $allowedQueryParams = [
-     *      'param1', 'param2', ... , 'paramN'
-     * ] //set the allowed query params
+     * @param string $route The URI Route -> e.g 'home', 'users', 'users/{user_id:numeric}' etc.
+     * @param closure $callback The function to execute if the Route is matched
+     * @param array $headers Some additional headers
+     * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
      * 
-     * @return [type]
+     * @return void
      * 
      */
-    public function get($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
+    public function get(string $route, closure $callback, array $headers = [], MiddlewareConfiguration|null $middlewareSettings = null, array $allowedQueryParams = []) : void
     {
         if ($_SERVER["REQUEST_METHOD"] === "GET") {
-            $this->navigate($route, $callback, "GET", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
+            $middlewareBehavior = ($middlewareSettings === null ? $this->middlewareConfig : $middlewareSettings);
+            $this->navigate($route, $callback, "GET", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: $middlewareBehavior, queryParams: $allowedQueryParams);
         }
     }
 
     /**
      * Add a POST method route
      *
-     * @param mixed $route
-     * @param mixed $callback
-     * @param array $headers
-     * @param array $middlewareSettings = [ 
-     *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
-     *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value
-     * ]
-     * @param array $allowedQueryParams = [
-     *      'param1', 'param2', ... , 'paramN'
-     * ] //set the allowed query params
+     * @param string $route The URI Route -> e.g 'home', 'users', 'users/{user_id:numeric}' etc.
+     * @param closure $callback The function to execute if the Route is matched
+     * @param array $headers Some additional headers
+     * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
      * 
-     * @return [type]
+     * @return void
      * 
      */
-    public function post($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
+    public function post(string $route, closure $callback, array $headers = [], MiddlewareConfiguration|null $middlewareSettings = null, array $allowedQueryParams = []) : void
     {
 
         if ($_SERVER["REQUEST_METHOD"] === "POST") {
-            $this->navigate($route, $callback, "POST", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
+            $middlewareBehavior = ($middlewareSettings === null ? $this->middlewareConfig : $middlewareSettings);
+            $this->navigate($route, $callback, "POST", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: $middlewareBehavior, queryParams: $allowedQueryParams);
         }
     }
 

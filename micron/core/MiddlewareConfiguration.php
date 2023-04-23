@@ -58,4 +58,17 @@ class MiddlewareConfiguration
 	public function getAcceptedContentType(): array {
 		return $this->acceptedContentType;
 	}
+
+    /**
+     * Summary of getConfiguration
+     * This function allow returning a MiddlewareConfiguration object without use the 'new' keyword
+     * 
+     * @param bool $tokenControl True value allow the middleware for checking and validate bearer token. False ignore the token.
+     * @param array $tokenBodyAuthorizedValues Allow to set some token body key and the reference value : e.g. ['level' => 'admin'] -> Will block every request where the token body key 'level' is not admin
+     * @param array $acceptedContentType Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array.
+     * @return MiddlewareConfiguration
+     */
+    static function getConfiguration(bool $tokenControl = true, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = []) : MiddlewareConfiguration{
+        return new MiddlewareConfiguration($tokenControl, $tokenBodyAuthorizedValues, $acceptedContentType);
+    }
 }

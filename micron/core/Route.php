@@ -250,48 +250,40 @@ class Route
     /**
      * Add a DELETE method route
      *
-     * @param mixed $route
-     * @param mixed $callback
-     * @param array $headers
-     * @param array $middlewareSettings = [ 
-     *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
-     *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value
-     * ]
-     * @param array $allowedQueryParams = [
-     *      'param1', 'param2', ... , 'paramN'
-     * ] //set the allowed query params
+     * @param string $route The URI Route -> e.g 'home', 'users', 'users/{user_id:numeric}' etc.
+     * @param closure $callback The function to execute if the Route is matched
+     * @param array $headers Some additional headers
+     * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
      * 
-     * @return [type]
+     * @return void
      * 
      */
-    public function delete($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
+    public function delete(string $route, closure $callback, array $headers = [], MiddlewareConfiguration|null $middlewareSettings = null, array $allowedQueryParams = []) : void
     {
         if ($_SERVER["REQUEST_METHOD"] === "DELETE") {
-            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
+            $middlewareBehavior = ($middlewareSettings === null ? $this->middlewareConfig : $middlewareSettings);
+            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: $middlewareBehavior, queryParams: $allowedQueryParams);
         }
     }
 
     /**
-     * Add a get PUT route
+     * Add a PUT route
      *
-     * @param mixed $route
-     * @param mixed $callback
-     * @param array $headers
-     * @param array $middlewareSettings = [ 
-     *      'TOKEN_CONTROL' => true|false //set the middleware to check authorization bearer token
-     *      'TOKEN_AUTH' => ['token_body_param' => 'authorized_value', ...] //check if specified token body param has the authorized value
-     * ]
-     * @param array $allowedQueryParams = [
-     *      'param1', 'param2', ... , 'paramN'
-     * ] //set the allowed query params
+     * @param string $route The URI Route -> e.g 'home', 'users', 'users/{user_id:numeric}' etc.
+     * @param closure $callback The function to execute if the Route is matched
+     * @param array $headers Some additional headers
+     * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
      * 
-     * @return [type]
+     * @return void
      * 
      */
-    public function put($route, $callback, $headers = [], $middlewareSettings = [], $allowedQueryParams = [])
+    public function put(string $route, closure $callback, array $headers = [], MiddlewareConfiguration|null $middlewareSettings = null, array $allowedQueryParams = []) : void
     {
         if ($_SERVER["REQUEST_METHOD"] === "PUT") {
-            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: (count($middlewareSettings) > 0 ? $middlewareSettings : $this->middlewareConfig), queryParams: $allowedQueryParams);
+            $middlewareBehavior = ($middlewareSettings === null ? $this->middlewareConfig : $middlewareSettings);
+            $this->navigate($route, $callback, "DELETE", headers: (count($headers) > 0 ? $headers : []), middlewareSettings: $middlewareBehavior, queryParams: $allowedQueryParams);
         }
     }
 

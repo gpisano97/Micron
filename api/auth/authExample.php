@@ -25,7 +25,7 @@ function authExample(Request $request){
             $body = array("name" => "test", "surname" => "example", "username" => $_POST["username"], "level" => "ADMIN");
             //Make SQL query using Database::ExecQuery($query_string, $params) for check user in DB and return data.
             $token = new JWT($body); //set the secret encription key on JWT/config.php or use the second parameter
-            $response->created("User is authenticated.", array("token" => $token->getToken(), "body" => $body));
+            $response->success("User is authenticated.", array("token" => $token->getToken(), "body" => $body));
             
         }
         else{

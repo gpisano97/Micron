@@ -125,10 +125,15 @@ class Users implements Resource
             $query = "INSERT INTO users_passwords (user_id, password) VALUES (:uid, SHA2(CONCAT(:uid, :pw),256))";
             $database->ExecQuery($query, ["uid" => $id, "pw" => $password]);
 
+            $database->commit();
+
             $response->created("New user successful created.");
 
 
         } catch (\Throwable $th) {
+            if($database->inTransaction()){
+                $database->rollBack();
+            }
             $response->response($th->getMessage(), [], false, $th->getCode());
         }
 
@@ -168,7 +173,7 @@ class Users implements Resource
 
             $params = [];
             $query = "SELECT * FROM users";
-            if ($request->URIparams["user_id"]) {
+            if (isset($request->URIparams["user_id"])) {
                 $query .= " WHERE user_id = :user_id";
                 $params["user_id"] = $request->URIparams["user_id"];
             }
@@ -264,7 +269,7 @@ class Users implements Resource
         //PUT 
         $router->put("users/{user_id:numeric}/resetpassword", function(Request $request){
             $this->resetPassword($request->URIparams["user_id"]);
-        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']]);
+        });
 
         $router->put("users/{user_id:numeric}", function(Request $request){
             $this->update($request);
@@ -274,6 +279,6 @@ class Users implements Resource
 
         $router->delete("users/{user_id:numeric}", function(Request $request){
             $this->delete($request->URIparams["user_id"]);
-        }, middlewareSettings : ['TOKEN_CONTROL' => true, 'ACCEPTED_CONTENT_TYPE' => ['application/json', 'text/json']]);
+        });
     }
 }

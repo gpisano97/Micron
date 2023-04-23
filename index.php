@@ -45,8 +45,8 @@ try {
     
     $route->get("home", function(){
         $response = new Response();
-        $response->provideFile('test.html', "inline");
-    }, middlewareSettings : ["TOKEN_CONTROL" => false]);
+        $response->provideFile('test.html', false);
+    }, middlewareSettings : MiddlewareConfiguration::getConfiguration(tokenControl : false));
     
     $route->get("example/{param_example:string}", function(Request $request){
         example($request->URIparams);

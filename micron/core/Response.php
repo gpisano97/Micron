@@ -170,22 +170,45 @@ class Response
         ob_end_clean();
     }
 
-    public function provideFile(string $filePath, string $disposition = 'attachment'){
-        $allowedDisposition = ['attachment', 'inline'];
+    /**
+     * Summary of provideFile
+     * 
+     * Responds sending a file. The file can be sent with 'inline' or 'attachment' header.
+     * @param string $filePath the file path on server file system.
+     * @param bool $isAttachment if true the file will be handled like 'attachment' (the browser will download it), if false will be handled like 'inline' (suggested for html files)
+     * @throws Exception this will occur when file not found.
+     * @return void
+     * 
+     */
+    public function provideFile(string $filePath, bool $isAttachment = true){
 
-        if(!in_array($disposition, $allowedDisposition)){
-            throw new Exception("Error, invalid disposition value.", 500);
-        }
-        
+        //checking if file exist
         if(!is_file($filePath)){
             throw new Exception("File not found.", 404);
         }
+
+        //get file extension reading the FS
         $extension = pathinfo($filePath, PATHINFO_EXTENSION);
+        //get file name reading the FS
         $filename = pathinfo($filePath, PATHINFO_FILENAME);
+        //get the content type reading the FS
         $contentType = mime_content_type($filePath);
+
+        //determine wath disposition use: attachment with filename is for download.
+        $disposition = "inline";
+        if($isAttachment){
+            $disposition = "attachment;filename=\"{$filename}.{$extension}\"";
+        }
+
+        //setting the headers
         header("Content-type:{$contentType}");
-        header("Content-Disposition:{$disposition};filename=\"{$filename}.{$extension}\"");
-        http_response_code(200);
+        header('Content-Description: File Transfer');
+        header("Cache-Control: no-cache, must-revalidate");
+        header("Content-Disposition: {$disposition}");
+        header("Content-Length: ".filesize($filePath));
+        header('Pragma: public');
+        flush();
+        http_response_code(200);        
         readfile($filePath);
     }
 }

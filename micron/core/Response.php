@@ -211,5 +211,14 @@ class Response
         http_response_code(200);        
         readfile($filePath);
     }
+
+    /**
+     * Summary of instance
+     * Provide an object of response without create it. This can be used to access all Response's functions
+     * @return Response
+     */
+    public static function instance() : Response{
+        return new Response();
+    }
 }
 

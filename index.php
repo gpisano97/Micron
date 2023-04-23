@@ -44,8 +44,7 @@ try {
     });
     
     $route->get("home", function(){
-        $response = new Response();
-        $response->provideFile('test.html', false);
+        Response::instance()->provideFile('test.html', false);
     }, middlewareSettings : MiddlewareConfiguration::getConfiguration(tokenControl : false));
     
     $route->get("example/{param_example:string}", function(Request $request){

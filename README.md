@@ -7,6 +7,7 @@ A small and usefull PHP Api REST framework.
 * [Setup](#setup)
 * [Utilization](#utilization)
 * [API](#api)
+* [Demos](#demos)
 
 
 ## General info
@@ -138,6 +139,8 @@ Manage MySQL Database connection and interaction, extends PDO and you can access
 | ---- | --------- | ----------- | ---------------- |
 | `__construct()` | `Database $database` </br> `string $tableName` | Create new Table object | `DBTable` |
 
+## Demos
+A rich collection of code's examples.
 
 
 ## Inspiration 

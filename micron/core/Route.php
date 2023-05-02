@@ -96,7 +96,15 @@ class Route
             $token = [];
         }
 
-        $request = new Request($_REQUEST["uri"], $_SERVER["REQUEST_METHOD"], $URIparams, $requestBody, $token, $qParams);
+        $uri = "";
+        if(!isset($_REQUEST["uri"])){
+            $uri = "/";
+        }
+        else{
+            $uri = $_REQUEST["uri"];
+        }
+
+        $request = new Request($uri, $_SERVER["REQUEST_METHOD"], $URIparams, $requestBody, $token, $qParams);
         return $request;
     }
 

@@ -4,7 +4,8 @@ namespace core;
 use Route;
 use Request;
 
-include_once 'micron/Micron.php';
+include_once 'micron/core/Request.php';
+include_once 'micron/core/Route.php';
 
 /**
  * Summary of Resource
@@ -12,34 +13,37 @@ include_once 'micron/Micron.php';
 interface Resource {
 
     /**
-     * Summary of read
+     * Read resources from database. This function must end with a Response.
      * @param Request $request
      * @return void
      * 
-     * Read resources from database. This function must end with a Response.
      */
     public function read(Request $request) : void;
+
     /**
-     * Summary of create
+     * Create a resource on the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
     public function create(Request $request) : void;
+
     /**
-     * Summary of update
+     * Update a resource on the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
     public function update(Request $request) : void;
+    
     /**
-     * Summary of delete
+     * Delete a resource from the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
     public function delete(Request $request) : void;
     
     /**
-     * Summary of listen
+     * This function will handle the routes of the resource. Put inside all listening endpoint (including endpoint linked to CRUD operations).
+     * Use this function in the same way you use the Micron entry point (so by default the index.php file).
      * @param Route $router
      * @return void
      */

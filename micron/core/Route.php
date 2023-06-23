@@ -221,7 +221,7 @@ class Route
      * @param closure $callback The function to execute if the Route is matched
      * @param array $headers Some additional headers
      * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
-     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1' => "string || numeric", 'param2' =>  "string || numeric" , ... , 'paramN' => "string || numeric"]
      * 
      * @return void
      * 
@@ -241,7 +241,7 @@ class Route
      * @param closure $callback The function to execute if the Route is matched
      * @param array $headers Some additional headers
      * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
-     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1' => "string || numeric", 'param2' =>  "string || numeric" , ... , 'paramN' => "string || numeric"]
      * 
      * @return void
      * 
@@ -262,7 +262,7 @@ class Route
      * @param closure $callback The function to execute if the Route is matched
      * @param array $headers Some additional headers
      * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
-     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1' => "string || numeric", 'param2' =>  "string || numeric" , ... , 'paramN' => "string || numeric"]
      * 
      * @return void
      * 
@@ -282,7 +282,7 @@ class Route
      * @param closure $callback The function to execute if the Route is matched
      * @param array $headers Some additional headers
      * @param MiddlewareConfiguration|null $middlewareSettings Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded.
-     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1', 'param2', ... , 'paramN']
+     * @param array $allowedQueryParams In this array you must define the allowed query params, e.g. ['param1' => "string || numeric", 'param2' =>  "string || numeric" , ... , 'paramN' => "string || numeric"]
      * 
      * @return void
      * 

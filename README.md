@@ -31,6 +31,8 @@ This section contain a complete tutorial on Micron in form of little stand alone
 
 * [Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
 
+I suggest to don't use this demos as real project starting files, remember to always download the last version of Micron from github!
+
 
 ## Utilization
 Be inspierd by `api` folder, when you clone the repo this folder contains a working database-less example for auth, GET and POST request.

@@ -7,7 +7,7 @@ A small and usefull PHP Api REST framework.
 * [Setup](#setup)
 * [Utilization](#utilization)
 * [API](#api)
-* [Demos/Tutorial](#demos)
+* [Demos/Tutorial](#demos/tutorial)
 
 
 ## General info
@@ -29,7 +29,7 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 ## Demos/Tutorial
 More than demos, this section contains a real tutorial on how to use micron... i suggest to follow the demo order!
 
-1.[Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
+*[Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
 
 
 ## Utilization

@@ -30,6 +30,7 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the order of the demos because the usage will become more advanced, cool and tidy for every demo!
 
 * [Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
+* [Authentication with JWT Token, Authorization based on Token's body checking, CORS handling](https://drive.google.com/file/d/1G-IBxJavGqnWNfn2ejsBv1Kg1PYJ4up5/view?usp=drive_link) 
 
 I suggest to don't use this demos as real project starting files, remember to always download the last version of Micron from github!
 

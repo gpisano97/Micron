@@ -27,7 +27,7 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 * In `config.php` put your jwt secret key.
 
 ## Tutorial
-This section contain a complete tutorial on Micron in form of little stand alone demos! I suggest to follow the oerder of the demos because the usage will become more advanced, cool and tidy for every demo!
+This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the oerder of the demos because the usage will become more advanced, cool and tidy for every demo!
 
 * [Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
 

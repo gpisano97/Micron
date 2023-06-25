@@ -1,6 +1,6 @@
 RewriteEngine On
 
-#location of your website
+#location of your api. change this to put your api in a subfolder
 RewriteBase /
 
 RewriteCond %{REQUEST_FILENAME} !-f

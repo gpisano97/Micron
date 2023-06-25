@@ -4,6 +4,7 @@ require_once 'DataHelper/DataHelper.php';
 require_once 'JWT/JWT.php';
 require_once 'Request.php';
 require_once 'MiddlewareConfiguration.php';
+require_once 'MiddlewareModules/JWTControl.php';
 
 use core\DataHelper\DataHelper;
 use core\JWT;
@@ -35,35 +36,27 @@ class Route
     private function Middleware(MiddlewareConfiguration $config, $URIparams = [], $queryParams = [])
     {
         //JWT Token Control
-        $token = DataHelper::getToken();
-        if ($config->getTokenControl()) {
-            if (empty($token)) {
-                throw new Exception("Missing auth token.", 400);
-            }
-            $token = JWT::decode($token);
-
-            $tokenAuthorizedParams = $config->getTokenBodyAuthorizedValues(); 
-            if (count($tokenAuthorizedParams) > 0) {
-
-                foreach ($tokenAuthorizedParams as $tokenBodyParam => $checkingValue) {
-                    if (!isset($token->getBody()[$tokenBodyParam])) {
-                        throw new Exception("Bad middleware's TOKEN_AUTH config: param {$tokenBodyParam} is not in Token Body.", 500);
-                    }
-
-                    if ($token->getBody()[$tokenBodyParam] !== $checkingValue) {
-                        throw new Exception("Insufficent permissions.", 401);
-                    }
-                }
-            }
-        }
+        $token = new JWT([]);
+        new JWTControl(config: $config, token: $token);
 
         //Request Content-Type Control
         $acceptedContentType = $config->getAcceptedContentType();
 
         $headers = getallheaders();
-        if(!in_array( (isset($headers['Content-Type']) ? $headers['Content-Type'] : 'none'), $acceptedContentType)){
+        $contentType = "none";
+        if(isset($headers['Content-Type'])){
+            $contentType = $headers['Content-Type'];
+        }
+        $inArray = false;
+        foreach ($acceptedContentType as $allowed) {
+            if(str_contains($contentType, $allowed)){
+                $inArray = true;
+            }
+        }
+        if(!$inArray){
             throw new Exception("Invalid request content type. Allowed content type for this route ".(count($acceptedContentType) > 1 ? "are" : "is")." :  ".(count($acceptedContentType) > 0 ? implode(array:$acceptedContentType, separator: ", ") : "none"), 400);
         }
+
 
         //Operations on incoming datas
         $requestBody = DataHelper::postGetBody();
@@ -89,8 +82,7 @@ class Route
             }
         }
 
-
-        if (gettype($token) !== "string") {
+        if (get_class($token) === "core\JWT") {
             $token = $token->getBody();
         } else {
             $token = [];

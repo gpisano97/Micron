@@ -180,7 +180,7 @@ class Response
      * @return void
      * 
      */
-    public function provideFile(string $filePath, bool $isAttachment = true){
+    public function provideFile(string $filePath, bool $isAttachment = true, string $nameOfDownloadFile = ""){
 
         //checking if file exist
         if(!is_file($filePath)){
@@ -196,8 +196,9 @@ class Response
 
         //determine wath disposition use: attachment with filename is for download.
         $disposition = "inline";
+        $downloadName = $nameOfDownloadFile !== "" ? $nameOfDownloadFile : $filename;
         if($isAttachment){
-            $disposition = "attachment;filename=\"{$filename}.{$extension}\"";
+            $disposition = "attachment;filename=\"{$downloadName}.{$extension}\"";
         }
 
         //setting the headers
@@ -219,6 +220,25 @@ class Response
      */
     public static function instance() : Response{
         return new Response();
+    }
+
+    /**
+     * Response to the client with the text encoded in HTML format 
+     * 
+     * @param string $text
+     * @param int $responseCode
+     * 
+     * @return [type]
+     * 
+     */
+    public function textAsHTML(string $text, int $responseCode = 200){
+        header("Content-type:text/html");
+        header("Content-Disposition: inline");
+        header('Pragma: public');
+        flush();
+        http_response_code($responseCode);
+        echo $text;
+        exit;
     }
 }
 

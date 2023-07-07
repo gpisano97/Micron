@@ -82,7 +82,7 @@ class Route
             }
         }
 
-        if (get_class($token) === "core\JWT") {
+        if (gettype($token) === "object" && get_class($token) === "core\JWT") {
             $token = $token->getBody();
         } else {
             $token = [];

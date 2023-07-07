@@ -9,3 +9,4 @@ include_once "core/Response.php";
 include_once "core/Users.php";
 include_once "core/JWT/JWT.php";
 include_once "core/MiddlewareConfiguration.php";
+include_once "core/Media/Files.php";

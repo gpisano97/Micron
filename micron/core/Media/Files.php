@@ -6,6 +6,23 @@ use core\Response;
 use Exception;
 
 /**
+ * Contains some usefull infos on the files present in the server.
+ * 
+ * @property string $path the complete path of the file.
+ * @property string $filename the file name without extension.
+ * @property string $basename the file name with the extension.
+ * @property string $extension the extension of the file.
+ * @property string $isPresent true if the file is on server, false otherwise.
+ */
+class FileInfo {
+    public string $path = "";
+    public string $filename = "";
+    public string $basename = ""; 
+    public string $extension = "";
+    public bool $isPresent = false;
+}
+
+/**
  * Provide usefull methods for file upload management.
  * The uploaded file are saved in a folder tree structure, e.g. ID : 10 will be => {MEDIA_BASE_PATH}/1/0/10.extension
  * You can also decide to save the file with his original name, e.g. ID : 10, filename : "Test.txt" will be -> {MEDIA_BASE_PATH}/1/0/Test.txt
@@ -189,8 +206,6 @@ class FilesManager
             $path .= "{$fileId}" . ".{$extension}";
         }
 
-        $path .= "{$fileId}" . ".{$extension}";
-
         if (move_uploaded_file($tempName, $path)) {
             return true;
         }
@@ -235,6 +250,45 @@ class FilesManager
         }
 
         return $fileFound;
+    }
+
+    /**
+     * Check if a file is present in the media folder and return some informations on the file.
+     *
+     * @param int $fileId file identificator
+     * @param string $targetFolder = "" an additional path to MEDIA_BASE_PATH
+     * @param string $fileName = "" if different by "", will be searched for a file with this filename. The fileName must containe the extension
+     * 
+     * @return FileInfo
+     * 
+     */
+    public function FileInfos(int $fileId, string $targetFolder = "", $fileName = "") : FileInfo {
+        $path = MEDIA_BASE_PATH . $targetFolder;
+
+        $fileId = (string) $fileId;
+
+        $path .= "/" . $this->splitIdInPathLike($fileId);
+
+        $scan = array_values(array_filter(scandir($path), function ($item) use ($path) {
+            return !is_dir($path . $item);
+        }));
+
+        $returnValue = new FileInfo();
+        
+        
+        if (count($scan) > 0) {
+            foreach ($scan as $file) {
+                if(($fileName !== "" && $file === $fileName) || ($fileName === "" && pathinfo($file, PATHINFO_FILENAME) === $fileId)){
+                    $returnValue->isPresent = true;
+                    $returnValue->extension = pathinfo($file, PATHINFO_EXTENSION);
+                    $returnValue->path = $path.$file;
+                    $returnValue->basename = $file;
+                    $returnValue->filename = pathinfo($file, PATHINFO_FILENAME);
+                }
+            }
+        }
+
+        return $returnValue;
     }
 
     /**

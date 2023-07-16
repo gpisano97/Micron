@@ -70,6 +70,7 @@ class DBTable
     public function create(array $requestBody)
     {
         if (DataHelper::checkIfSomeParametersInBody($this->tableScheme, $requestBody)) {
+            $transactionBeginHere = false;
             $fields = "";
             $values = "";
             $keys = array_keys($requestBody);
@@ -83,13 +84,18 @@ class DBTable
             $fields = rtrim($fields, ",");
             $values = rtrim($values, ",");
             $query = "INSERT INTO {$this->tableName} ({$fields}) VALUES (${values})";
-            $this->database->beginTransaction();
+            if(!$this->database->inTransaction()){
+                $this->database->beginTransaction();
+                $transactionBeginHere = true;
+            }
             try {
                 $result = $this->database->ExecQuery($query, $requestBody);
-                $this->database->commit();
                 if ($result->rowCount() > 0) {
                     $query = "SELECT LAST_INSERT_ID() id";
                     $result = $this->database->ExecQuery($query);
+                }
+                if($transactionBeginHere){
+                    $this->database->commit();
                 }
             } catch (\Throwable $th) {
                 $this->database->rollBack();

@@ -5,7 +5,7 @@ A small and usefull PHP Api REST framework.
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Features](#features]
+* [Features](#features)
 * [Tutorial](#tutorial)
 * [Utilization](#utilization)
 * [API](#api)

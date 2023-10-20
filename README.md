@@ -5,9 +5,11 @@ A small and usefull PHP Api REST framework.
 * [General info](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
+* [Features](#features]
+* [Tutorial](#tutorial)
 * [Utilization](#utilization)
 * [API](#api)
-* [Tutorial](#tutorial)
+
 
 
 ## General info
@@ -25,6 +27,8 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 * In `.htaccess` file put your "index file" location. I recommend keeping the default setting.
 * In `config.php` file put your database information.
 * In `config.php` put your jwt secret key.
+
+## Features
 
 ## Tutorial
 This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the order of the demos because the usage will become more advanced, cool and tidy for every demo!

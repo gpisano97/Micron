@@ -29,6 +29,9 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 * In `config.php` put your jwt secret key.
 
 ## Features
+Micron is a fantastic tool for create Web Applications with PHP. Micron main goal is to provide a simple way for create Restfull API, but now is much more! With the latest update you can provide HTML pages or manage Files upload/download in your server in a very organized way! Here a list with the Micron's features:
+
+* Create readable and dynamic URI in order to reach the resources.
 
 ## Tutorial
 This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the order of the demos because the usage will become more advanced, cool and tidy for every demo!

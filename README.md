@@ -32,6 +32,15 @@ This framework allow you to build **API Rest using PHP** in a very easy way. It 
 Micron is a fantastic tool for create Web Applications with PHP. Micron main goal is to provide a simple way for create Restfull API, but now is much more! With the latest update you can provide HTML pages or manage Files upload/download in your server in a very organized way! Here a list with the Micron's features:
 
 * Create readable and dynamic URI in order to reach the resources.
+	* Definitions of typed or not-typed path params -> `/example/{param:string}` or `/example/{param:numeric}` or `/example/{param}`
+	* Definitions of typed or not-typed query params. You can define wich query params is allowed and their types (if they have). Fill the key `allowedQueryParams` with an array like this `["queryp1" => "string", "queryp2" => "numeric", "queryp3"]` 
+* JWT Library Class, this class allow to create and manage JWT Token.
+* Database Library Class, this class allow the interactions with a MySql database, including query execution with parameters, transactions and also the Table class, a powerfull class that allow you to make the CRUD operations on a table.
+* Response Library Class, this class provide a usefull set of json encoded response with the correct HTTP Code. It also provide the `provideFile`method for file download and the `textAsHTML` method that generate an html type response.
+* Files Library Class. this class provide a set of functions to upload, manage and download file with your Micron-based application. The class store the file in a very organized way based on integer file id.
+* Resource Interface. This is a new entry, the classes that implements this interface are handled by Micron as resources!
+	* Using the `registerResources`  method provided by Route Class, you can register your own resource Class. The parameter is an array wich can contains both string's class name and class instance -> `registerResources(['ClassResourceName', new ClassResource()])`. Obviously in order to make this work you must require your class php's file where you call registerResources method (i suggest to do this in the index.php file). This method runs the `listen` function inherited from Resource interface, in the listen function you must put your resource's end points.
+ 
 
 ## Tutorial
 This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the order of the demos because the usage will become more advanced, cool and tidy for every demo!

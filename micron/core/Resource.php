@@ -18,28 +18,28 @@ interface Resource {
      * @return void
      * 
      */
-    public function read(Request $request) : void;
+    //public function read(Request $request) : void;
 
     /**
      * Create a resource on the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
-    public function create(Request $request) : void;
+    //public function create(Request $request) : void;
 
     /**
      * Update a resource on the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
-    public function update(Request $request) : void;
+    //public function update(Request $request) : void;
     
     /**
      * Delete a resource from the database. This function must end with a Response.
      * @param Request $request
      * @return void
      */
-    public function delete(Request $request) : void;
+    //public function delete(Request $request) : void;
     
     /**
      * This function will handle the routes of the resource. Put inside all listening endpoint (including endpoint linked to CRUD operations).

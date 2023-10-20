@@ -5,20 +5,27 @@ use core\Response;
 use core\MiddlewareConfiguration;
 
 require_once "micron/Micron.php";
+require_once "api/Resources/Test.php";
 
 
 $route = new Route();
-
+//in order to make the application "private"
+/* $route->isPublished = false;
+$route->notPulishedCallback = function(){
+    Response::instance()->success("chiuso :)");
+};
+$route->accessPassphraseKeyIfNotPublished = "pw";
+$route->accessPassphraseIfNotPublished = "OK"; */
 
 
 $route->enableCORS();
 
 try {
 
-    $route->get("/", function (Request $request) {
+    /* $route->get("/", function (Request $request) {
         Response::instance()->success("Hello from Micron!!");
     }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false));
-
+ */
     /* $route->post("testfile", function (Request $request) {
         $fm = new FilesManager();
         $fm->Upload(fileId: $request->requestBody["id"], uploadedFile: $request->requestBody["file"], replaceIfPresent: true);
@@ -26,6 +33,10 @@ try {
         $fm->Download(fileId: $request->requestBody["id"], downloadName: "prova");
         //$fm->Delete(fileId: $request->requestBody["id"], fileName: $request->requestBody["file"]["name"]);
     }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false, acceptedContentType: ["multipart/form-data"])); */
+
+    $route->registerResources([
+        "Test"
+    ]);
 
     $route->notFound("404.php");
 } catch (\Throwable $th) {

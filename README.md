@@ -45,7 +45,7 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :
 
-* Resources auto discovery -> this function allow to set an autodiscover that make all your Resource automatically listen for incoming request, without register them or put the endpoint code in the index.php file.
+* Resources auto discovery -> this function allow to set an autodiscover that make all your Resources automatically listen for incoming request, without register them or put the endpoint code in the index.php file.
 * .env file support.
 
  

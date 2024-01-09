@@ -5,16 +5,18 @@ use core\Response;
 use core\MiddlewareConfiguration;
 
 require_once "micron/Micron.php";
-require_once "api/Resources/Test.php";
+require_once "api/Resources/HelloWorld.php";
 
 
 $route = new Route();
 //in order to make the application "private"
 /* $route->isPublished = false;
 $route->notPulishedCallback = function(){
-    Response::instance()->success("chiuso :)");
+    Response::instance()->success("API not published yet.");
 };
+//key for guarantee access to endpoints. Must be added at the end of the request URI as uri param.
 $route->accessPassphraseKeyIfNotPublished = "pw";
+//value for guarantee access to endpoints
 $route->accessPassphraseIfNotPublished = "OK"; */
 
 
@@ -22,21 +24,17 @@ $route->enableCORS();
 
 try {
 
-    /* $route->get("/", function (Request $request) {
-        Response::instance()->success("Hello from Micron!!");
-    }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false));
- */
-    /* $route->post("testfile", function (Request $request) {
-        $fm = new FilesManager();
-        $fm->Upload(fileId: $request->requestBody["id"], uploadedFile: $request->requestBody["file"], replaceIfPresent: true);
-        $info = $fm->FileInfos(fileId: $request->requestBody["id"]);
-        $fm->Download(fileId: $request->requestBody["id"], downloadName: "prova");
-        //$fm->Delete(fileId: $request->requestBody["id"], fileName: $request->requestBody["file"]["name"]);
-    }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false, acceptedContentType: ["multipart/form-data"])); */
+    //if you want to manually call all the listeners
+    /* $helloWorldResource = new HelloWorld();
+    $helloWorldResource->listen($route); */
 
-    $route->registerResources([
-        "Test"
-    ]);
+    //if you want to manually register your resources
+    /* $route->registerResources([
+        "HelloWorld"
+    ]); */
+
+    //if you want to start the resource autolisten. This will run all your resources.
+    $route->start();
 
     $route->notFound("404.php");
 } catch (\Throwable $th) {

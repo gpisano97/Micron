@@ -43,6 +43,7 @@ class JWT
         $this->secret_key = $secret_key;
         $this->body["iat"] = time();
         $this->body["exp"] = $this->body["iat"] + ($hours_before_expire * 3600);
+        $this->header["iss"] = $_SERVER["SERVER_NAME"];
         $body_encoded = base64url_encode(json_encode($this->body));
         $header_encoded = base64url_encode(json_encode($this->header));
         $this->signature = hash_hmac("sha256", $header_encoded.".".$body_encoded, $this->secret_key);

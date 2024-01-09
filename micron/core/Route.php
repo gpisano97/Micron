@@ -41,6 +41,9 @@ class Route
     public $accessPassphraseKeyIfNotPublished = "";
     public $accessPassphraseIfNotPublished = "";
 
+    public $enableUsersManagement = false;
+    
+
     /**
      * Initialize Micron Framework
      *
@@ -155,7 +158,7 @@ class Route
         header("Content-Type: application/json; charset=UTF-8");
 
         if (!$this->isPublished) {
-            if(!isset($_GET[$this->accessPassphraseKeyIfNotPublished]) || $_GET[$this->accessPassphraseKeyIfNotPublished] !== $this->accessPassphraseIfNotPublished){
+            if (!isset($_GET[$this->accessPassphraseKeyIfNotPublished]) || $_GET[$this->accessPassphraseKeyIfNotPublished] !== $this->accessPassphraseIfNotPublished) {
                 if ($this->notPulishedCallback !== null) {
                     $callback = $this->notPulishedCallback;
                     if (is_callable($callback)) {
@@ -164,12 +167,11 @@ class Route
                     } else {
                         throw new Exception("Given callback for 'not published' is not callable.");
                     }
-    
+
                 } else {
                     Response::instance()->unhatorized("This application is not published yet.");
                 }
-            }
-            else{
+            } else {
                 unset($_GET[$this->accessPassphraseKeyIfNotPublished]);
             }
         }
@@ -376,7 +378,7 @@ class Route
     }
 
     /**
-     * Register a resource and listen for incoming request.
+     * Register a resource and listen for incoming request. This function is a bit faster of 'start' with autodiscover
      * A Micron resource is a class that implements the Resource interface. 
      *
      * @param array $resources can ben an array of objects, class names (string) or mixed (object and classnames). Use Objects if you want to pass custom attributes or Router
@@ -399,5 +401,33 @@ class Route
                 throw new Exception("The class " . get_class($resourceInstance) . " is not a resource.", 500);
             }
         }
+    }
+
+    /**
+     * Start the server and autodiscover the available Resources.
+     * A Micron resource is a class that implements the Resource interface. 
+     *
+     * 
+     * @return void
+     * 
+     */
+    public function start(): void
+    {
+        $resources = array_filter(
+            get_declared_classes(),
+            function ($className) {
+                $conditionImplementResource = in_array('core\Resource', class_implements($className));
+                if(!$this->enableUsersManagement && $className == "core\Users"){
+                    return false;
+                }
+                return $conditionImplementResource;
+            }
+        );
+
+        foreach ($resources as $resource) {
+            $resourceInstance = new $resource();
+            $resourceInstance->listen($this);
+        }
+
     }
 }

@@ -165,7 +165,7 @@ class FilesManager
      * @param bool $useFilename = false  if true, will be used the original filename of the uploaded file.
      * @param string $fileNameToReplace = "" if different by "", will be searched for a file with this filename. The fileName must containe the extension
      * 
-     * @return bool
+     * @return bool true if success, false otherwise
      * 
      */
     public function Replace(int $fileId, array $newFile, string $targetFolder = "", bool $useFilename = false, string $fileNameToReplace = ""): bool

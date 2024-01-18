@@ -29,9 +29,12 @@ class JWTControl
                     if(!in_array(gettype($token->getBody()[$tokenBodyParam]), $this->acceptedTypes) ){
                         throw new Exception("the tokenBodyAuthorizedValues argument must be an array.", 500);
                     }
-                    if (!in_array($token->getBody()[$tokenBodyParam], $checkingValue)) {
+                    if ($token->getBody()[$tokenBodyParam] !== $checkingValue) {
                         throw new Exception("Insufficent permissions.", 401);
                     }
+                    /* if (!in_array($token->getBody()[$tokenBodyParam], $checkingValue)) {
+                        throw new Exception("Insufficent permissions.", 401);
+                    } */
                 }
             }
         }

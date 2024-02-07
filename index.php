@@ -33,7 +33,10 @@ try {
         "HelloWorld"
     ]); */
 
+    $route->static("public");
+
     //if you want to start the resource autolisten. This will run all your resources.
+    //visit http://{your_host} to see the micron landing page, this page is provided by the HelloWorld Resource
     $route->start();
 
     $route->notFound("404.php");

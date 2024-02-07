@@ -430,4 +430,41 @@ class Route
         }
 
     }
+
+
+    private function staticMakePath(string $path, array &$paths){
+        $scan = scandir($path);
+        $scan = array_filter($scan, function($item) {
+            return $item !== "." && $item !== "..";
+        });
+        foreach ($scan as $folderObject) {
+            $completeFolder = $path."/".$folderObject;
+            if(is_dir($completeFolder)){
+                $this->staticMakePath($completeFolder, $paths);
+            }
+            else{
+                array_push($paths, $completeFolder);
+            }
+        }
+        return;
+    }
+
+    /**
+     * This function serve files statically. If you make subfolders they will be used to build the path for the static files. 
+     * @param string $staticFolderPath the path of the folder which contains the files to provide statically.
+     * 
+     * @return void
+     * 
+     */
+    public function static(string $staticFolderPath){
+        $pathsToServe = [];
+        $this->staticMakePath($staticFolderPath, $pathsToServe);
+        foreach ($pathsToServe as $path) {
+            $uri = str_replace($staticFolderPath."/", "", $path);
+            $this->get($uri, function(Request $request) use($path){
+                Response::instance()->provideFile($path, false);
+            }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false));
+        }
+        
+    }
 }

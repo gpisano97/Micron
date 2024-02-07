@@ -1,4 +1,5 @@
 <?php
+use core\Media\FilesManager;
 use core\MiddlewareConfiguration;
 use core\Resource;
 use core\Response;
@@ -9,7 +10,7 @@ class HelloWorld implements Resource
 {
     public function listen(Route $router) : void {
         $router->get('/', function(Request $request){
-            Response::instance()->success("Hello from Micron, are you ready to build awesome API ?");
+            Response::instance()->provideFile($_SERVER['DOCUMENT_ROOT']."/views/main.html", false);
         }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false));
     }
 }

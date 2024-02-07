@@ -194,6 +194,13 @@ class Response
         //get the content type reading the FS
         $contentType = mime_content_type($filePath);
 
+        if($extension === "css"){
+            $contentType = "text/css";
+        }
+        if($extension === "js"){
+            $contentType = "text/javascript";
+        }
+
         //determine wath disposition use: attachment with filename is for download.
         $disposition = "inline";
         $downloadName = $nameOfDownloadFile !== "" ? $nameOfDownloadFile : $filename;

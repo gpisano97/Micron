@@ -1,3 +1,4 @@
+![micron logo](https://github.com/gpisano97/Micron/blob/main/public/images/micron-logo.png?raw=true)
 # Micron - PHP API REST Framework
 A small and usefull PHP Api REST framework.
 

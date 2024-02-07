@@ -17,6 +17,7 @@ class Database extends PDO
     private $database_name = DB_DATABASE_NAME;
     private $username = DB_USERNAME;
     private $password = DB_PASSWORD;
+    private $dbtype = DB_TYPE;
     private bool $auto_rollback = false;
 
     private string $charset = "utf8";
@@ -25,7 +26,7 @@ class Database extends PDO
     public function __construct(bool $auto_rollback = true, string $charset = "utf8")
     {
         try {
-            parent::__construct("mysql:host=" . $this->host . ";dbname=" . $this->database_name.";charset={$charset}", $this->username, $this->password);
+            parent::__construct($this->dbtype. ":host=" . $this->host . ";dbname=" . $this->database_name.";charset={$charset}", $this->username, $this->password);
             $this->auto_rollback = $auto_rollback;
             $this->charset = $charset;
         } catch (PDOException $exception) {

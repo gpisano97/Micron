@@ -253,7 +253,7 @@ class FilesManager
     }
 
     /**
-     * Check if a file is present in the media folder and return some informations on the file.
+     * Check if a file is present in the media folder and return some informations about the file.
      *
      * @param int $fileId file identificator
      * @param string $targetFolder = "" an additional path to MEDIA_BASE_PATH

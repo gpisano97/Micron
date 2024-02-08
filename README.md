@@ -42,6 +42,7 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 * Files Library Class. this class provide a set of functions to upload, manage and download file with your Micron-based application. The class store the file in a very organized way based on integer file id.
 * Resource Interface. This is a new entry, the classes that implements this interface are handled by Micron as resources!
 	* Using the `registerResources`  method provided by Route Class, you can register your own resource Class. The parameter is an array wich can contains both string's class name and class instance -> `registerResources(['ClassResourceName', new ClassResource()])`. Obviously in order to make this work you must require your class php's file where you call registerResources method (i suggest to do this in the index.php file). This method runs the `listen` function inherited from Resource interface, in the listen function you must put your resource's end points.
+ * Resources auto-discover. Micron is now able to locale all PHP class that implements the Resource interface and to run the listen function! This make the code a lot cleaner and organized
 
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :

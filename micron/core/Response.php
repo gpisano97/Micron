@@ -173,9 +173,10 @@ class Response
     /**
      * Summary of provideFile
      * 
-     * Responds sending a file. The file can be sent with 'inline' or 'attachment' header.
+     * Sending a file as response. The file can be sent with 'inline' or 'attachment' header.
      * @param string $filePath the file path on server file system.
      * @param bool $isAttachment if true the file will be handled like 'attachment' (the browser will download it), if false will be handled like 'inline' (suggested for html files)
+     * @param string $nameOfDownloadFile set the name of the file
      * @throws Exception this will occur when file not found.
      * @return void
      * 
@@ -230,12 +231,12 @@ class Response
     }
 
     /**
-     * Response to the client with the text encoded in HTML format 
+     * Send a Response with HTML content type.
      * 
-     * @param string $text
-     * @param int $responseCode
+     * @param string $text the HTML code to be sent as response.
+     * @param int $responseCode HTTP response code, usually 200.
      * 
-     * @return [type]
+     * @return void
      * 
      */
     public function textAsHTML(string $text, int $responseCode = 200){

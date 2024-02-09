@@ -16,7 +16,7 @@ A small and usefull PHP Api REST framework.
 
 ## General info
 
-This framework allow you to build **API Rest using PHP** in a very easy way. It also provides usefull helper class, like DataHelper or Database that allow you to connect and make prepared query to MySql database in a very fast and simple way. There is also a library for user authentication with **JWT Token**. **All the framework classes throws php exceptions on error, so is strongly recommended using "try-catch" block for wrap your code.** Micron has an internal PHP routing class and this provides an easy way for **build readble URI**. It supports all HTTP method (following **REST guidelines**) and provides all the **responses** cases (according to HTTP Code) in **JSON** format thanks to Response Class. Routing uses anonymous function for execute your code, so is required to put your code in a function to be run. From version 1.5.0 there is a fantastic new middleware that allow to: check JWT token, check for constraints in JWT Token, control the allowed request content type! 
+Micron is an amazing framework for build amazing **API Rest using PHP** in a very easy way. It has a lot of helper class (from Database to FilesManager), and allow you to write in modern, clean and organized code. With the Micron's middleware you can automatically manage JWT Authentication and Token based Authorization, you can also serve static files. Every request comes with a Request class object which provide you a lot of information about the request, the request body (POST body, Raw Body and uploaded files all in a place), URI params and query params! With micron you will save a lot of time and a lot of energy! Try it!  
 
 ## Technologies
 * PHP 8.
@@ -39,10 +39,11 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 * JWT Library Class, this class allow to create and manage JWT Token.
 * Database Library Class, this class allow the interactions with a MySql database, including query execution with parameters, transactions and also the Table class, a powerfull class that allow you to make the CRUD operations on a table.
 * Response Library Class, this class provide a usefull set of json encoded response with the correct HTTP Code. It also provide the `provideFile`method for file download and the `textAsHTML` method that generate an html type response.
-* Files Library Class. this class provide a set of functions to upload, manage and download file with your Micron-based application. The class store the file in a very organized way based on integer file id.
+* FilesManager Library Class. this class provide a set of functions to upload, manage and download file with your Micron-based application. The class store the file in a very organized way based on integer file id.
 * Resource Interface. This is a new entry, the classes that implements this interface are handled by Micron as resources!
 	* Using the `registerResources`  method provided by Route Class, you can register your own resource Class. The parameter is an array wich can contains both string's class name and class instance -> `registerResources(['ClassResourceName', new ClassResource()])`. Obviously in order to make this work you must require your class php's file where you call registerResources method (i suggest to do this in the index.php file). This method runs the `listen` function inherited from Resource interface, in the listen function you must put your resource's end points.
- * Resources auto-discover. Micron is now able to locale all PHP class that implements the Resource interface and to run the listen function! This make the code a lot cleaner and organized
+ * Resources auto-discover. Micron is now able to locale all PHP class that implements the Resource interface and to run the listen function! This make the code a lot cleaner and organized.
+ * Static files provider. Define your static files folder (usually "public"), make your folders structure and Micron will automatically create all the correct URI for you!
 
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :

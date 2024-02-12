@@ -3,6 +3,7 @@ namespace core\DataHelper;
 
 require_once 'ParamKey.php';
 require_once 'Node.php';
+require_once 'UriParam.php';
 
 
 /**
@@ -139,17 +140,34 @@ class DataHelper
      * 
      * Generate a server log inside "micron-logs" folder
      */
-    public static function log(string $text){
+    public static function log(string $text)
+    {
         $log_path = $_SERVER["DOCUMENT_ROOT"] . "/micron-logs/";
-        if(!is_dir($log_path)){
+        if (!is_dir($log_path)) {
             mkdir($log_path);
         }
-        $file_path = $log_path."log.txt";
-        if(file_exists($file_path)){
-            file_put_contents($file_path, date("Y-m-d H:i:s")." - ".$text."\r\n", FILE_APPEND);
-        }
-        else{
-            file_put_contents($file_path, date("Y-m-d H:i:s")." - ".$text."\r\n");
+        $file_path = $log_path . "log.txt";
+        $lock_file = $log_path . "log.txt.lock";
+        try {
+            $file_free = false;
+            while (!$file_free) {
+                if (file_exists($lock_file)) {
+                    usleep(150);
+                } else {
+                    $file_free = true;
+                }
+            }
+            file_put_contents($lock_file, "");
+            if (file_exists($file_path)) {
+                file_put_contents($file_path, date("Y-m-d H:i:s") . " - " . $text . "\r\n", FILE_APPEND);
+            } else {
+                file_put_contents($file_path, date("Y-m-d H:i:s") . " - " . $text . "\r\n");
+            }
+            unlink($lock_file);
+        } catch (\Throwable $th) {
+            if (file_exists($lock_file)) {
+                unlink($lock_file);
+            }
         }
     }
 
@@ -159,8 +177,9 @@ class DataHelper
      * Convert given seconds in 'h m s' format. 
      * 
      */
-    public static function fromSecondsToTime(int $seconds){
-        return intval(($seconds/ 3600))."h ".($seconds/ 60 % 60)."m ".($seconds%60)."s";
+    public static function fromSecondsToTime(int $seconds)
+    {
+        return intval(($seconds / 3600)) . "h " . ($seconds / 60 % 60) . "m " . ($seconds % 60) . "s";
     }
 
     /**

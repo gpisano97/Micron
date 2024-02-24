@@ -26,6 +26,8 @@ class DBTable
     private string $tableName;
     private array $tableScheme;
 
+    const DISABLE_TRHOW_EXCEPTION = true;
+    const READ_RETURN_ALWAYS_ARRAY = true;
 
 
     /**
@@ -162,18 +164,23 @@ class DBTable
      * 
      * @param string $rowIdenfingCondition = "field1 = :field1 AND field2 <> :field2" //use this scheme to build the row identifing condition
      * @param array $rowIdenfingConditionValues = ["field1" => $value1, "field2" => $value2] //this array is very important to identify the row
+     * @param array $options, this parameter is optional and is used to configure the function behavior. Accept an array with two possibile value:  DBTable::DISABLE_TRHOW_EXCEPTION and this option disable the exception throwing.
+     * 
      * @return int
      * 
      * @throws Exception
      */
-    public function delete(string $rowIdenfingCondition, array $rowIdenfingConditionValues)
+    public function delete(string $rowIdenfingCondition, array $rowIdenfingConditionValues, array $options = [self::DISABLE_TRHOW_EXCEPTION])
     {
         //checking row's existency and unicity
         $checkIfRowExistQeury = " SELECT * FROM {$this->tableName} WHERE {$rowIdenfingCondition}";
         $checkResult = $this->database->ExecQuery($checkIfRowExistQeury, $rowIdenfingConditionValues);
 
-        if ($checkResult->rowCount() === 0) {
+        if ($checkResult->rowCount() === 0 && !in_array(self::DISABLE_TRHOW_EXCEPTION, $options)) {
             throw new Exception("Row in {$this->tableName} table not found.", 404);
+        }
+        else{
+            return 0;
         }
 
         if ($checkResult->rowCount() > 1) {
@@ -191,20 +198,21 @@ class DBTable
      *
      * @param string $rowIdenfingCondition = "field1 = :field1 AND field2 <> :field2" //use this scheme to build the row identifing condition, can be omitted
      * @param array $rowIdenfingConditionValues = ["field1" => $value1, "field2" => $value2] //this array is very important to identify the row, can't be omitted if rowIdentifingCondition is present
+     * @param array $options, this parameter is optional and is used to configure the function behavior. Accept an array with two possibile value:  DBTable::DISABLE_TRHOW_EXCEPTION, DBTable::RETURN_ALWAIS_ARRAY. The first option disable the exception throwing, the second option allow to return an array also if the function find only a row.
      * 
      * @return array
      * 
      */
-    public function read(string $rowIdenfingCondition = "", array $rowIdenfingConditionValues = [])
+    public function read(string $rowIdenfingCondition = "", array $rowIdenfingConditionValues = [], array $options = [self::DISABLE_TRHOW_EXCEPTION, self::READ_RETURN_ALWAYS_ARRAY])
     {
 
         $query = "SELECT * FROM {$this->tableName} " . ($rowIdenfingCondition !== "" ? " WHERE " : "") . " " . $rowIdenfingCondition;
         $result = $this->database->ExecQuery($query, $rowIdenfingConditionValues);
-        if ($result->rowCount() === 0) {
+        if ($result->rowCount() === 0 && !in_array(self::DISABLE_TRHOW_EXCEPTION, $options)) {
             throw new Exception("Any row found.", 404);
         }
         $data = [];
-        if ($result->rowCount() === 1) {
+        if ($result->rowCount() === 1 && !in_array(self::READ_RETURN_ALWAYS_ARRAY, $options)) {
             $data = $result->fetch(PDO::FETCH_ASSOC);
         } else {
             $data = $result->fetchAll(PDO::FETCH_ASSOC);

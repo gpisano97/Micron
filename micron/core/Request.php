@@ -1,5 +1,6 @@
 <?php
-
+use core\DataHelper\UriParam;
+require_once "micron/core/DataHelper/UriParam.php";
 
 class Request
 {
@@ -18,5 +19,9 @@ class Request
         $this->requestBody = $requestBody;
         $this->authTokenBody = $authTokenBody;
         $this->queryParams = $queryParams;
+    }
+
+    public function getUriParamValue(UriParam $param){
+        return $this->URIparams[$param->paramName];
     }
 }

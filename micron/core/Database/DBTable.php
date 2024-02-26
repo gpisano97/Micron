@@ -100,7 +100,9 @@ class DBTable
                     $this->database->commit();
                 }
             } catch (\Throwable $th) {
-                $this->database->rollBack();
+                if($this->database->inTransaction()){
+                    $this->database->rollBack();
+                }
                 throw new Exception($th->getMessage(), 500);
             }
 

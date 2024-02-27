@@ -101,11 +101,14 @@ class Route
                     $qParams[$keyToCheck] = $_GET[$keyToCheck];
                 } else {
                     if (!in_array($queryParams[$param], $queryParamTypes)) {
-                        throw new Exception("Query param type for {$param} not allowed, can be 'string' or 'numeric' ", 400);
+                        throw new Exception("Query param type for {$param} not allowed, can be 'string', 'numeric' or 'mixed' ", 400);
                     }
                     if ((is_numeric($_GET[$param]) && $queryParams[$param] === "numeric") || (!is_numeric($_GET[$param]) && $queryParams[$param] === "string")) {
                         $qParams[$param] = $_GET[$param];
-                    } else {
+                    } else if($queryParams[$param] === "mixed"){
+                        $qParams[$param] = $_GET[$param];
+                    }
+                    else{
                         throw new Exception("Query param value for {$param} not allowed, should be : {$queryParams[$param]}", 400);
                     }
                 }

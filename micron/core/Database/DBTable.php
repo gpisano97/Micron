@@ -181,7 +181,7 @@ class DBTable
         if ($checkResult->rowCount() === 0 && !in_array(self::DISABLE_TRHOW_EXCEPTION, $options)) {
             throw new Exception("Row in {$this->tableName} table not found.", 404);
         }
-        else{
+        else if ($checkResult->rowCount() === 0){
             return 0;
         }
 

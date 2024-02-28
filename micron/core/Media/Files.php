@@ -14,10 +14,11 @@ use Exception;
  * @property string $extension the extension of the file.
  * @property string $isPresent true if the file is on server, false otherwise.
  */
-class FileInfo {
+class FileInfo
+{
     public string $path = "";
     public string $filename = "";
-    public string $basename = ""; 
+    public string $basename = "";
     public string $extension = "";
     public bool $isPresent = false;
 }
@@ -84,10 +85,9 @@ class FilesManager
 
         $fileIsPresent = $this->IsPresent((int) $fileId, $targetFolder, ($useFilename ? $uploadedFile["name"] : ""));
 
-        if($fileIsPresent && !$replaceIfPresent){
+        if ($fileIsPresent && !$replaceIfPresent) {
             throw new Exception("File with id: $fileId found! Use Replace function instead Upload to replace it or use another file id.", 400);
-        }
-        else if($fileIsPresent && $replaceIfPresent){
+        } else if ($fileIsPresent && $replaceIfPresent) {
             return $this->Replace((int) $fileId, $uploadedFile, $targetFolder, false, ($useFilename ? $uploadedFile["name"] : ""));
         }
 
@@ -110,13 +110,14 @@ class FilesManager
      * @param int $fileId file identificator
      * @param string $targetFolder = "" an additional path to MEDIA_BASE_PATH
      * @param string $fileName = "" if different by "", will be searched for a file with this filename. The fileName must containe the extension
+     * @param string $throwException = false; if false the function will not throw exception, return "false" instead
      * 
      * @throws Exception throw an exception if the file is not found.
      * 
      * @return bool
      * 
      */
-    public function Delete(int $fileId, string $targetFolder = "", string $fileName = ""): bool
+    public function Delete(int $fileId, string $targetFolder = "", string $fileName = "", bool $throwException = false): bool
     {
         $fileId = (string) $fileId;
 
@@ -129,9 +130,11 @@ class FilesManager
         }));
 
         if (count($scan) === 0) {
-            throw new Exception("File not found.", 404);
+            if ($throwException)
+                throw new Exception("File not found.", 404);
+            else
+                return false;
         }
-
         $filename = $path;
 
         if ($fileName !== "") {
@@ -142,7 +145,10 @@ class FilesManager
                 }
             }
             if (!$fileFound) {
-                throw new Exception("File not found.", 404);
+                if ($throwException)
+                    throw new Exception("File not found.", 404);
+                else
+                    return false;
             }
             $filename .= $fileName;
         } else {
@@ -185,13 +191,12 @@ class FilesManager
 
         $filename = $path;
 
-        if($fileNameToReplace !== ""){
+        if ($fileNameToReplace !== "") {
             $filename .= $fileNameToReplace;
+        } else {
+            $filename .= $fileId . ".{$extensionOfFileToReplace}";
         }
-        else{
-            $filename .= $fileId.".{$extensionOfFileToReplace}";
-        }
-         
+
         if (!unlink($filename)) {
             return false;
         }
@@ -223,7 +228,8 @@ class FilesManager
      * @return bool
      * 
      */
-    public function IsPresent(int $fileId, string $targetFolder = "", $fileName = "", string &$extensionOfFoundFile = null) : bool {
+    public function IsPresent(int $fileId, string $targetFolder = "", $fileName = "", string &$extensionOfFoundFile = null): bool
+    {
         $path = MEDIA_BASE_PATH . $targetFolder;
 
         $fileId = (string) $fileId;
@@ -235,14 +241,14 @@ class FilesManager
         }));
 
         $fileFound = false;
-        
+
         if (count($scan) > 0) {
             foreach ($scan as $file) {
                 $f = pathinfo($file, PATHINFO_FILENAME);
-                if(($fileName !== "" && $file === $fileName) || ($fileName === "" && pathinfo($file, PATHINFO_FILENAME) === $fileId)){
+                if (($fileName !== "" && $file === $fileName) || ($fileName === "" && pathinfo($file, PATHINFO_FILENAME) === $fileId)) {
                     $fileFound = true;
 
-                    if($extensionOfFoundFile !== null){
+                    if ($extensionOfFoundFile !== null) {
                         $extensionOfFoundFile = pathinfo($file, PATHINFO_EXTENSION);
                     }
                 }
@@ -262,7 +268,8 @@ class FilesManager
      * @return FileInfo
      * 
      */
-    public function FileInfos(int $fileId, string $targetFolder = "", $fileName = "") : FileInfo {
+    public function FileInfos(int $fileId, string $targetFolder = "", $fileName = ""): FileInfo
+    {
         $path = MEDIA_BASE_PATH . $targetFolder;
 
         $fileId = (string) $fileId;
@@ -274,14 +281,14 @@ class FilesManager
         }));
 
         $returnValue = new FileInfo();
-        
-        
+
+
         if (count($scan) > 0) {
             foreach ($scan as $file) {
-                if(($fileName !== "" && $file === $fileName) || ($fileName === "" && pathinfo($file, PATHINFO_FILENAME) === $fileId)){
+                if (($fileName !== "" && $file === $fileName) || ($fileName === "" && pathinfo($file, PATHINFO_FILENAME) === $fileId)) {
                     $returnValue->isPresent = true;
                     $returnValue->extension = pathinfo($file, PATHINFO_EXTENSION);
-                    $returnValue->path = $path.$file;
+                    $returnValue->path = $path . $file;
                     $returnValue->basename = $file;
                     $returnValue->filename = pathinfo($file, PATHINFO_FILENAME);
                 }
@@ -302,7 +309,8 @@ class FilesManager
      * @return [type]
      * 
      */
-    public function Download(int $fileId, string $targetFolder = "", string $fileName = "", string $downloadName = ""){
+    public function Download(int $fileId, string $targetFolder = "", string $fileName = "", string $downloadName = "")
+    {
 
         $path = MEDIA_BASE_PATH . $targetFolder;
         $fileId = (string) $fileId;
@@ -311,15 +319,14 @@ class FilesManager
         $extensionOfFoundFile = "";
         $fileIsPresent = $this->IsPresent((int) $fileId, $targetFolder, $fileName, $extensionOfFoundFile);
 
-        if(!$fileIsPresent){
+        if (!$fileIsPresent) {
             throw new Exception("File not found.", 404);
         }
 
-        if($fileName !== ""){
+        if ($fileName !== "") {
             $path .= $fileName;
-        }
-        else{
-            $path .= $fileId.".{$extensionOfFoundFile}";
+        } else {
+            $path .= $fileId . ".{$extensionOfFoundFile}";
         }
 
         Response::instance()->provideFile($path, true, $downloadName);

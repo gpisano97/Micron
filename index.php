@@ -22,26 +22,20 @@ $route->accessPassphraseIfNotPublished = "OK"; */
 
 $route->enableCORS();
 
-try {
 
-    //if you want to manually call all the listeners
-    /* $helloWorldResource = new HelloWorld();
-    $helloWorldResource->listen($route); */
+//if you want to manually call all the listeners
+/* $helloWorldResource = new HelloWorld();
+$helloWorldResource->listen($route); */
 
-    //if you want to manually register your resources
-    /* $route->registerResources([
-        "HelloWorld"
-    ]); */
+//if you want to manually register your resources
+/* $route->registerResources([
+    "HelloWorld"
+]); */
 
-    $route->static("public");
+$route->static("public");
 
-    //if you want to start the resource autolisten. This will run all your resources.
-    //visit http://{your_host} to see the micron landing page, this page is provided by the HelloWorld Resource
-    $route->start();
+//if you want to start the resource autolisten. This will run all your resources.
+//visit http://{your_host} to see the micron landing page, this page is provided by the HelloWorld Resource
+$route->start();
 
-    $route->notFound("404.php");
-} catch (\Throwable $th) {
-    $response = new Response();
-    $response->response($th->getMessage(), [], false, $th->getCode());
-    exit;
-}
+$route->notFound("404.php");

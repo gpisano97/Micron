@@ -42,7 +42,7 @@ class Route
     public $accessPassphraseIfNotPublished = "";
 
     public $enableUsersManagement = false;
-    
+
 
     /**
      * Initialize Micron Framework
@@ -105,10 +105,9 @@ class Route
                     }
                     if ((is_numeric($_GET[$param]) && $queryParams[$param] === "numeric") || (!is_numeric($_GET[$param]) && $queryParams[$param] === "string")) {
                         $qParams[$param] = $_GET[$param];
-                    } else if($queryParams[$param] === "mixed"){
+                    } else if ($queryParams[$param] === "mixed") {
                         $qParams[$param] = $_GET[$param];
-                    }
-                    else{
+                    } else {
                         throw new Exception("Query param value for {$param} not allowed, should be : {$queryParams[$param]}", 400);
                     }
                 }
@@ -416,36 +415,41 @@ class Route
      */
     public function start(): void
     {
-        $resources = array_filter(
-            get_declared_classes(),
-            function ($className) {
-                $conditionImplementResource = in_array('core\Resource', class_implements($className));
-                if(!$this->enableUsersManagement && $className == "core\Users"){
-                    return false;
+        try {
+            $resources = array_filter(
+                get_declared_classes(),
+                function ($className) {
+                    $conditionImplementResource = in_array('core\Resource', class_implements($className));
+                    if (!$this->enableUsersManagement && $className == "core\Users") {
+                        return false;
+                    }
+                    return $conditionImplementResource;
                 }
-                return $conditionImplementResource;
+            );
+
+            foreach ($resources as $resource) {
+                $resourceInstance = new $resource();
+                $resourceInstance->listen($this);
             }
-        );
-
-        foreach ($resources as $resource) {
-            $resourceInstance = new $resource();
-            $resourceInstance->listen($this);
+        } catch (\Throwable $th) {
+            $response = new Response();
+            $response->response($th->getMessage(), [], false, $th->getCode());
+            exit;
         }
-
     }
 
 
-    private function staticMakePath(string $path, array &$paths){
+    private function staticMakePath(string $path, array &$paths)
+    {
         $scan = scandir($path);
-        $scan = array_filter($scan, function($item) {
+        $scan = array_filter($scan, function ($item) {
             return $item !== "." && $item !== "..";
         });
         foreach ($scan as $folderObject) {
-            $completeFolder = $path."/".$folderObject;
-            if(is_dir($completeFolder)){
+            $completeFolder = $path . "/" . $folderObject;
+            if (is_dir($completeFolder)) {
                 $this->staticMakePath($completeFolder, $paths);
-            }
-            else{
+            } else {
                 array_push($paths, $completeFolder);
             }
         }
@@ -459,15 +463,16 @@ class Route
      * @return void
      * 
      */
-    public function static(string $staticFolderPath){
+    public function static(string $staticFolderPath)
+    {
         $pathsToServe = [];
         $this->staticMakePath($staticFolderPath, $pathsToServe);
         foreach ($pathsToServe as $path) {
-            $uri = str_replace($staticFolderPath."/", "", $path);
-            $this->get($uri, function(Request $request) use($path){
+            $uri = str_replace($staticFolderPath . "/", "", $path);
+            $this->get($uri, function (Request $request) use ($path) {
                 Response::instance()->provideFile($path, false);
             }, middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false));
         }
-        
+
     }
 }

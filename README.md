@@ -22,7 +22,6 @@ Micron is an amazing framework for build amazing **API Rest using PHP** in a ver
 * PHP 8.
 * PDO for Database interaction.
 * OOP.
-* Functional Programming.
 
 ## Setup
 * clone the repo.

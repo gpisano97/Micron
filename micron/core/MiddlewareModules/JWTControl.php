@@ -19,6 +19,15 @@ class JWTControl
             }
             $token = JWT::decode($token);
 
+            //handling the refresh token behavior
+            if($config->getIsRefreshToken() !== $token->getHeader()["refresh"]){
+                $token_type = "access";
+                if($config->getIsRefreshToken()){
+                    $token_type = "refresh";
+                }
+                throw new Exception("Invalid token type provided, expected $token_type token", 500);
+            }
+
             $tokenAuthorizedParams = $config->getTokenBodyAuthorizedValues(); 
             if (count($tokenAuthorizedParams) > 0) {
 

@@ -38,12 +38,13 @@ class JWT
      * 
      * Generate token
      */
-    public function __construct(array $body, string $secret_key = JWT_SECRET, int $hours_before_expire = 24){   
+    public function __construct(array $body, string $secret_key = JWT_SECRET, int $hours_before_expire = 24, bool $refreshToken = false){   
         $this->body = $body;
         $this->secret_key = $secret_key;
         $this->body["iat"] = time();
         $this->body["exp"] = $this->body["iat"] + ($hours_before_expire * 3600);
         $this->header["iss"] = $_SERVER["SERVER_NAME"];
+        $this->header["refresh"] = $refreshToken;
         $body_encoded = base64url_encode(json_encode($this->body));
         $header_encoded = base64url_encode(json_encode($this->header));
         $this->signature = hash_hmac("sha256", $header_encoded.".".$body_encoded, $this->secret_key);
@@ -68,6 +69,15 @@ class JWT
     public function getBody(){
         return $this->body;
     }
+
+    /**
+     * @return array
+     * 
+     * get token header like associative array
+     */
+    public function getHeader(){
+        return $this->header;
+    }
    
     /**
      * @param string $token
@@ -83,7 +93,11 @@ class JWT
     public static function decode(string $token,string $secret_key = JWT_SECRET){
         if(JWT::verify($token, $secret_key)){
             $token_parts = explode(".", $token);
-            return new JWT(json_decode(base64url_decode($token_parts[1]) ,true), $secret_key);
+            $header = json_decode(base64url_decode($token_parts[0]),true);
+            $body = json_decode(base64url_decode($token_parts[1]),true);
+            $duration = ($body['exp'] - $body['iat'])/3600;
+            $isRefreshToken = $header["refresh"];
+            return new JWT($body, $secret_key, hours_before_expire: $duration, refreshToken: $isRefreshToken);
         }
         return false;
     }

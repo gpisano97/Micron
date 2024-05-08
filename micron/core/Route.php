@@ -129,6 +129,10 @@ class Route
         }
 
         $request = new Request($uri, $_SERVER["REQUEST_METHOD"], $URIparams, $requestBody, $token, $qParams);
+        //Custom Middleware here.
+        foreach ($config->getCustomMiddlewaresObject() as $customMiddleware) {
+            $customMiddleware->run($request);
+        }
         return $request;
     }
 

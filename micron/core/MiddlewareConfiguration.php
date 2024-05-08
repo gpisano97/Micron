@@ -18,6 +18,8 @@ class MiddlewareConfiguration
     private array $tokenBodyAuthorizedValues = [];
     private array $acceptedContentType = ['application/json', 'text/json', 'none'];
 
+    private array $CustomMiddlewaresObjects = [];
+
 
     /**
      * Summary of __construct
@@ -25,11 +27,28 @@ class MiddlewareConfiguration
      * @param bool $isRefreshToken True value allow the middleware for checking and validate the refresh token. False will throw an exception if a refresh token provided.
      * @param array $tokenBodyAuthorizedValues Allow to set some token body key and the reference value : e.g. ['level' => 'admin'] -> Will block every request where the token body key 'level' is not admin
      * @param array $acceptedContentType Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array.
+     * @param array $CustomMiddlewares Allow to add some middlewares function that will be executed after the default Middleware functionalities.
      */
-    function __construct(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = []){
+    function __construct(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = []){
         $this->tokenControl = $tokenControl;
         $this->tokenBodyAuthorizedValues = $tokenBodyAuthorizedValues;
         $this->isRefreshToken = $isRefreshToken;
+        foreach ($CustomMiddlewares as $CustomMiddleware) {
+            if(gettype($CustomMiddleware) !== "string"){
+                throw new \Exception("CustomMiddleware must be an array of string containing class names!", 500);
+            }
+            $classImplementation = class_implements($CustomMiddleware); 
+            if($classImplementation === false){
+                throw new \Exception("CustomMiddleware class $CustomMiddleware not exist or is not required. Try require it with require_once.", 500);
+            }
+            else if( !in_array("core\MiddlewareConfiguration\ICustomMiddleware", $classImplementation) ){
+                throw new \Exception("All Custom Middlewares must implement the core\MiddlewareConfiguration\ICustomMiddleware interface.");
+            }
+
+            $customMiddlewareObj = new $CustomMiddleware();
+            array_push($this->CustomMiddlewaresObjects, $customMiddlewareObj); 
+        }
+
         if(count($acceptedContentType) > 0){
             $this->acceptedContentType = $acceptedContentType;
         }
@@ -72,6 +91,15 @@ class MiddlewareConfiguration
 	}
 
     /**
+     * Get Custom Middleware Objects
+     * 
+	 * @return array
+	 */
+	public function getCustomMiddlewaresObject(): array {
+		return $this->CustomMiddlewaresObjects;
+	}
+
+    /**
      * Summary of getConfiguration
      * This function allow returning a MiddlewareConfiguration object without use the 'new' keyword
      * 
@@ -79,9 +107,10 @@ class MiddlewareConfiguration
      * @param bool $isRefreshToken True value allow the middleware for checking and validate the refresh token. False will throw an exception of InvalidToken if a refresh token provided.
      * @param array $tokenBodyAuthorizedValues Allow to set some token body key and the reference value : e.g. ['level' => 'admin'] -> Will block every request where the token body key 'level' is not admin
      * @param array $acceptedContentType Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array.
+     * @param array $CustomMiddlewares Allow to add some middlewares function that will be executed after the default Middleware functionalities.
      * @return MiddlewareConfiguration
      */
-    static function getConfiguration(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = []) : MiddlewareConfiguration{
-        return new MiddlewareConfiguration($tokenControl, $isRefreshToken, $tokenBodyAuthorizedValues, $acceptedContentType);
+    static function getConfiguration(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = []) : MiddlewareConfiguration{
+        return new MiddlewareConfiguration($tokenControl, $isRefreshToken, $tokenBodyAuthorizedValues, $acceptedContentType, $CustomMiddlewares);
     }
 }

@@ -236,6 +236,10 @@ class FilesManager
 
         $path .= "/" . $this->splitIdInPathLike($fileId);
 
+        if(!is_dir($path)){
+            return false;
+        }
+
         $scan = array_values(array_filter(scandir($path), function ($item) use ($path) {
             return !is_dir($path . $item);
         }));

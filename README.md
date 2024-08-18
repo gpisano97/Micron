@@ -47,6 +47,9 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :
 
+* CustomMiddlewares
+* UriParam class to build cleaner uri
+* Database ORM.
 * .env file support.
 
  

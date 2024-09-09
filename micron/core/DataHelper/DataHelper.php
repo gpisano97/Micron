@@ -53,6 +53,7 @@ class DataHelper
                 $headers = trim($requestHeaders['Authorization']);
             }
         }
+        $headers ??= "";
         $headers = str_replace("Bearer ", "", $headers);
         return $headers;
     }

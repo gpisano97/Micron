@@ -6,7 +6,9 @@ require_once 'Request.php';
 require_once 'MiddlewareConfiguration.php';
 require_once 'MiddlewareModules/JWTControl.php';
 require_once 'Resource.php';
+require_once 'Attributes/ResourceName.php';
 
+use core\Attributes\ResourceName;
 use core\DataHelper\DataHelper;
 use core\JWT;
 use core\MiddlewareConfiguration;
@@ -409,6 +411,20 @@ class Route
         }
     }
 
+    private function getResourceName(string $className):string | null {
+        $reflectionClass = new ReflectionClass($className);
+        $resourceAttributes = $reflectionClass->getAttributes(ResourceName::class);
+        if (count($resourceAttributes) === 0)
+            return null;
+
+        $resourceNameAttributeParams = $resourceAttributes[0]->getArguments();
+
+        if (count($resourceNameAttributeParams) === 0)
+            return "";
+
+        return $resourceNameAttributeParams[0];
+    }
+
     /**
      * Start the server and autodiscover the available Resources.
      * A Micron resource is a class that implements the Resource interface. 
@@ -420,7 +436,7 @@ class Route
     public function start(): void
     {
         try {
-            $resources = array_filter(
+            /* $resources = array_filter(
                 get_declared_classes(),
                 function ($className) {
                     $conditionImplementResource = in_array('core\Resource', class_implements($className));
@@ -434,7 +450,38 @@ class Route
             foreach ($resources as $resource) {
                 $resourceInstance = new $resource();
                 $resourceInstance->listen($this);
+            } */
+           //prendo le classi dichiarate e le scorro, chiaramente controllando se implementano l'interfaccia Resource
+            $declaredClasses = get_declared_classes();
+            $resourcesToRun = [];
+            $uriExploded = explode("/", $_REQUEST["uri"]); 
+            $uriRoot = $uriExploded[0];
+            $i = 0;
+            while($i < count($declaredClasses)){
+                $className = $declaredClasses[$i];
+                $isAResource = in_array(Resource::class, class_implements($className));
+                if($isAResource){
+                    //riempio l'array con le classi candidate, in questo modo: se non ha il ResourceName la inserisco nelle classi da eseguire
+                    $resourceName = $this->getResourceName($className);
+                    if($resourceName === $uriRoot){
+                        //se invece trovo una con il resourceName che corrisponde alla radice della richiesta svuoto l'array da eseguire e metto solo quella classe
+                        //in quel caso il resto dell'url è sicuramente li dentro.
+                        $resourcesToRun = [$className];
+                        $i = count($declaredClasses);
+                    }
+                    else{
+                        array_push($resourcesToRun, $className); 
+                    }
+                }
+                $i++;
             }
+
+            foreach ($resourcesToRun as $resource) {
+                $resourceInstance = new $resource();
+                $resourceInstance->listen($this);
+            }
+           
+           
         } catch (\Throwable $th) {
             $response = new Response();
             $response->response($th->getMessage(), [], false, $th->getCode());

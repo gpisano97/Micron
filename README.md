@@ -16,7 +16,7 @@ A small and usefull PHP Api REST framework.
 
 ## General info
 
-Micron is an amazing framework for build amazing **API Rest using PHP** in a very easy way. It has a lot of helper class (from Database to FilesManager), and allow you to write in modern, clean and organized code. With the Micron's middleware you can automatically manage JWT Authentication and Token based Authorization, you can also serve static files. Every request comes with a Request class object which provide you a lot of information about the request, the request body (POST body, Raw Body and uploaded files all in a place), URI params and query params! With micron you will save a lot of time and a lot of energy! Try it!  
+Micron is an amazing framework for build incredible **Web Applications using PHP**. It has a lot of helper class (from Database to FilesManager), and allow you to write in modern, clean and organized code. With the Micron's middleware you can automatically manage JWT Authentication and Token based Authorization, you can also serve static files. Every request comes with a Request class object which provide you a lot of information about the request, the request body (POST body, Raw Body and uploaded files all in a place), URI params and query params! With micron you will save a lot of time and a lot of energy! Try it!  
 
 ## Technologies
 * PHP 8.

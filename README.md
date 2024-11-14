@@ -16,7 +16,7 @@ A small and usefull PHP Api REST framework.
 
 ## General info
 
-Micron is an amazing framework for build amazing **API Rest using PHP** in a very easy way. It has a lot of helper class (from Database to FilesManager), and allow you to write in modern, clean and organized code. With the Micron's middleware you can automatically manage JWT Authentication and Token based Authorization, you can also serve static files. Every request comes with a Request class object which provide you a lot of information about the request, the request body (POST body, Raw Body and uploaded files all in a place), URI params and query params! With micron you will save a lot of time and a lot of energy! Try it!  
+Micron is an amazing framework for build incredible **Web Applications using PHP**. It has a lot of helper class (from Database to FilesManager), and allow you to write in modern, clean and organized code. With the Micron's middleware you can automatically manage JWT Authentication and Token based Authorization, you can also serve static files. Every request comes with a Request class object which provide you a lot of information about the request, the request body (POST body, Raw Body and uploaded files all in a place), URI params and query params! With micron you will save a lot of time and a lot of energy! Try it!  
 
 ## Technologies
 * PHP 8.
@@ -47,6 +47,9 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :
 
+* CustomMiddlewares
+* UriParam class to build cleaner uri
+* Database ORM.
 * .env file support.
 
  
@@ -180,4 +183,4 @@ Manage MySQL Database connection and interaction, extends PDO and you can access
 The `navigate` private function is inspired by a source code read on [Help in coding](https://helpincoding.com), i have modified it and passed from "inlcuding file" to "anonymous functions".  
 
 ## About me
-I'm an Italian Full-stack Web Developer since 2019 with **TacoSoft s.r.l**. and a student of **Politecnico di Torino**, in this moment i'm having fun with **ReactJS**, but i started with **PHP** and I can't leave him. Follow me on my [Linked-In page](https://www.linkedin.com/in/girolamo-dario-pisano-375aa514b/) to be updated with some other awesome project!
+I'm an Italian Full-stack Web Developer since 2019 with **TacoSoft s.r.l**. and a student of **UniTO**, in this moment i'm having fun with **ReactJS**, but i started with **PHP** and I can't leave him. Follow me on my [Linked-In page](https://www.linkedin.com/in/girolamo-dario-pisano-375aa514b/) to be updated with some other awesome project!

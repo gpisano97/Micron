@@ -17,6 +17,8 @@ use Exception;
 class FileInfo
 {
     public string $path = "";
+
+    public string $relativePath = "";
     public string $filename = "";
     public string $basename = "";
     public string $extension = "";
@@ -34,6 +36,12 @@ class FileInfo
 class FilesManager
 {
 
+    private function mergeBaseWithAdditionalPath($additionalPath): string
+    {
+        if ($additionalPath[0] !== "/")
+            $additionalPath = "/$additionalPath";
+        return MEDIA_BASE_PATH . $additionalPath;
+    }
     private function splitIdInPathLike(string $id)
     {
         $path = "";
@@ -73,7 +81,8 @@ class FilesManager
         }
 
         $tempName = $uploadedFile["tmp_name"];
-        $path = MEDIA_BASE_PATH . $targetFolder;
+  
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
 
         $fileId = (string) $fileId;
 
@@ -121,7 +130,7 @@ class FilesManager
     {
         $fileId = (string) $fileId;
 
-        $path = MEDIA_BASE_PATH . $targetFolder;
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
 
         $path .= "/" . $this->splitIdInPathLike($fileId);
 
@@ -178,7 +187,7 @@ class FilesManager
     {
         $fileId = (string) $fileId;
 
-        $path = MEDIA_BASE_PATH . $targetFolder;
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
 
         $path .= "/" . $this->splitIdInPathLike($fileId);
 
@@ -230,13 +239,13 @@ class FilesManager
      */
     public function IsPresent(int $fileId, string $targetFolder = "", $fileName = "", string &$extensionOfFoundFile = null): bool
     {
-        $path = MEDIA_BASE_PATH . $targetFolder;
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
 
         $fileId = (string) $fileId;
 
         $path .= "/" . $this->splitIdInPathLike($fileId);
 
-        if(!is_dir($path)){
+        if (!is_dir($path)) {
             return false;
         }
 
@@ -274,18 +283,29 @@ class FilesManager
      */
     public function FileInfos(int $fileId, string $targetFolder = "", $fileName = ""): FileInfo
     {
-        $path = MEDIA_BASE_PATH . $targetFolder;
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
 
         $fileId = (string) $fileId;
 
-        $path .= "/" . $this->splitIdInPathLike($fileId);
+        $fileIdSplit = $this->splitIdInPathLike($fileId);
+
+        $path .= "/" . $fileIdSplit;
 
         $scan = array_values(array_filter(scandir($path), function ($item) use ($path) {
             return !is_dir($path . $item);
         }));
 
-        $returnValue = new FileInfo();
+        $relativePathRoot = $targetFolder;
+        if($relativePathRoot[0] !== ""){
+            $relativePathRoot = "/$relativePathRoot";
+        } 
+        if($relativePathRoot[strlen($relativePathRoot)-1] !== "/"){
+            $relativePathRoot = "$relativePathRoot/";
+        }
 
+        $relativePathRoot .= $fileIdSplit;
+
+        $returnValue = new FileInfo();
 
         if (count($scan) > 0) {
             foreach ($scan as $file) {
@@ -294,6 +314,7 @@ class FilesManager
                     $returnValue->extension = pathinfo($file, PATHINFO_EXTENSION);
                     $returnValue->path = $path . $file;
                     $returnValue->basename = $file;
+                    $returnValue->relativePath = $relativePathRoot.$file;
                     $returnValue->filename = pathinfo($file, PATHINFO_FILENAME);
                 }
             }
@@ -316,7 +337,7 @@ class FilesManager
     public function Download(int $fileId, string $targetFolder = "", string $fileName = "", string $downloadName = "")
     {
 
-        $path = MEDIA_BASE_PATH . $targetFolder;
+        $path = $this->mergeBaseWithAdditionalPath($targetFolder);
         $fileId = (string) $fileId;
         $path .= "/" . $this->splitIdInPathLike($fileId);
 

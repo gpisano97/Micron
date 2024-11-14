@@ -1,6 +1,8 @@
 <?php
 namespace core\DataHelper;
 
+use core\Attributes\ResourceName;
+
 require_once 'ParamKey.php';
 require_once 'Node.php';
 require_once 'UriParam.php';
@@ -200,6 +202,37 @@ class DataHelper
     }
 
 
+    public static function getResourceName(string $className): string | null {
+        $reflectionClass = new \ReflectionClass($className);
+        $resourceAttributes = $reflectionClass->getAttributes(ResourceName::class);
+        if (count($resourceAttributes) === 0)
+            return null;
+
+        $resourceNameAttributeParams = $resourceAttributes[0]->getArguments();
+
+        if (count($resourceNameAttributeParams) === 0)
+            return "";
+
+        return $resourceNameAttributeParams[0];
+    }
+
+    /**
+     * Take a list of keys and a body and return a new array with only allowed keys
+     * @param array $allowedKeys Contains the keys allowed in the body. e.g. ["user_id", "name"]
+     * @param array $body The body to normalize
+     * @return array
+     * 
+     * 
+     */
+    public static function normalizeBody(array $allowedKeys, array $body) : array {
+        $normalizedBody = [];
+        foreach ($allowedKeys as $allowedKey) {
+            if(isset($body[$allowedKey])){
+                $normalizedBody[$allowedKey] = $body[$allowedKey];
+            }
+        }
+        return $normalizedBody;
+    }
 
 
 }

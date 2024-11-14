@@ -1,13 +1,16 @@
 <?php
+use core\Attributes\ResourceName;
 use core\DataHelper\UriParam;
 use core\DataHelper\UriParamType;
-use core\Media\FilesManager;
 use core\MiddlewareConfiguration;
 use core\Resource;
 use core\Response;
 
 require_once 'micron/Micron.php';
 
+
+
+#[ResourceName("")]
 class HelloWorld implements Resource
 {
     public function listen(Route $router) : void {
@@ -18,7 +21,8 @@ class HelloWorld implements Resource
         $param = new UriParam("param", UriParamType::number);
         $param2 = new UriParam("param2", UriParamType::number); 
         $param3 = new UriParam("param3", UriParamType::number);
-        $router->get("test/$param/$param2/$param3", function(Request $request) use($param, $param2) {
+
+        $router->get("$param/$param2/$param3", function(Request $request) use($param, $param2) {
             $responseString = "Param value : ".$request->getUriParamValue($param);
             $responseString .= ", param2 value : ".$request->URIparams[$param2->paramName];
             $responseString .= ", param3 value : ".$request->URIparams["param3"];

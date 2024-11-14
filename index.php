@@ -5,7 +5,7 @@ use core\Response;
 use core\MiddlewareConfiguration;
 
 require_once "micron/Micron.php";
-require_once "api/Resources/HelloWorld.php";
+require_once "api/Resources/HelloWorld.php"; //don't forget to require you resources!
 
 
 $route = new Route();

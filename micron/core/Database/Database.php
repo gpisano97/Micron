@@ -1,6 +1,7 @@
 <?php
 namespace core;
 use core\Database\DBTable;
+use core\Database\Attributes;
 use Exception;
 use PDO;
 use PDOException;
@@ -9,6 +10,21 @@ use PDOStatement;
 include_once $_SERVER["DOCUMENT_ROOT"] . '/config.php';
 
 include_once 'DBTable.php';
+include_once 'Attributes/Table.php';
+include_once 'Attributes/PrimaryKey.php';
+include_once 'Attributes/DefaultValue.php';
+include_once 'Attributes/Required.php';
+include_once 'Attributes/TableField.php';
+include_once 'Attributes/CreateIfNotExist.php';
+include_once 'Types/PropertyInfo.php';
+include_once 'ColumnTypes/Numbers/DbInt.php';
+include_once 'ColumnTypes/Numbers/BigInt.php';
+include_once 'ColumnTypes/Numbers/DbFloat.php';
+include_once 'ColumnTypes/Numbers/DbDouble.php';
+include_once 'ColumnTypes/Strings/Varchar.php';
+include_once 'ColumnTypes/Strings/Text.php';
+include_once 'DBModel.php';
+
 
 class Database extends PDO
 {
@@ -36,13 +52,13 @@ class Database extends PDO
 
 
     /**
+     * Execute a query on the Database.
      * @param string $query -> example : SELECT * FROM table WHERE id = :id
      * @param array $params -> example (using the $query example) : ["id" => $id]
      * 
      * @return \PDOStatement
      * @throws \Exception
      * 
-     * Execute a query on the Database.
      */
     public function ExecQuery(string $query, array $params = [])
     {
@@ -73,14 +89,15 @@ class Database extends PDO
     }
 
     /**
+     * Connect and execute a query on the database.
+     * Use this for fast query executions. For multiple queries i suggest to use the ExecQuery function of Database object 
+     * because this function open a connection for every query and this can result in poor performance.
+     * 
      * @param string $query_string
      * @param array $params
      * @throws Exception
      * @return PDOStatement
      * 
-     * Connect and execute a query on the database.
-     * Use this for fast query executions. For multiple queries i suggest to use the ExecQuery function of Database object 
-     * because this function open a connection for every query and this can result in poor performance.
      */
     public static function SExecQuery($query_string, $params = [])
     {
@@ -135,5 +152,9 @@ class Database extends PDO
     public function Table(string $tableName)
     {
         return new DBTable($this, $tableName);
+    }
+
+    public function getDbType(){
+        return $this->dbtype;
     }
 }

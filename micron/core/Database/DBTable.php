@@ -26,6 +26,7 @@ class DBTable
     private string $tableName;
     private array $tableScheme;
 
+
     const DISABLE_TRHOW_EXCEPTION = true;
     const READ_RETURN_ALWAYS_ARRAY = true;
 
@@ -45,18 +46,12 @@ class DBTable
             $this->tableScheme = $scheme;
         } catch (\Throwable $th) {
             if ($th->getCode() === 404) {
-                /*                 if($model === null){ */
-                throw new Exception($th->getMessage(), $th->getCode());
-                /*                 }
-                else{
-                //creating the table using the model
-                } */
+                 throw new Exception($th->getMessage(), $th->getCode());
             } else {
                 throw new Exception($th->getMessage(), ($th->getCode() === null ? 500 : $th->getCode()));
             }
         }
     }
-
 
     /**
      * This function allow to insert a record in the database and return the id.
@@ -85,7 +80,7 @@ class DBTable
 
             $fields = rtrim($fields, ",");
             $values = rtrim($values, ",");
-            $query = "INSERT INTO {$this->tableName} ({$fields}) VALUES (${values})";
+            $query = "INSERT INTO {$this->tableName} ({$fields}) VALUES ({$values})";
             if(!$this->database->inTransaction()){
                 $this->database->beginTransaction();
                 $transactionBeginHere = true;
@@ -111,55 +106,6 @@ class DBTable
         throw new Exception("Incoerent request body.", 400);
     }
 
-
-
-    /**
-     * @param array $options = [ 
-     *              "values" => ["field1" => "val1", "field2" => "val2"],
-     *              "comparisons" => ["field1" => EQUAL, "field2" => NOTEQUAL, "field3" => LIKE],
-     *              "customWhere" => "( field1 = :field1 AND field2 <> :field2) OR NOTNULL(:field3)"
-     *              ]
-     * 
-     * N.B. A pair "value - comparison" is concatenated with the other through an AND operator.
-     * 
-     */
-    /*     public function delete(array $options = array("values" => [], "comparisons" => []))
-    {
-    //get the fields
-    $fields = array_keys($options["values"]);
-    //Checking if some comparison is setted
-    if (count($fields) === 0) {
-    trigger_error("Warning, you are deleting all the table rows.");
-    }
-    //Checking if fields exist in table scheme.
-    foreach ($fields as $field) {
-    if (!in_array($field, $this->tableScheme)) {
-    throw new Exception("You must specify only existent fields.");
-    }
-    }
-    //Checking if comparisons keys are coerents with values keys
-    $comparisonsKeys = array_keys($options["comparisons"]);
-    if (count(array_intersect($fields, $comparisonsKeys)) !== count($fields)) {
-    throw new Exception("Values keys and comparisons keys are incoerent.");
-    }
-    $query = "DELETE FROM {$this->tableName} WHERE ";
-    foreach ($fields as $field) {
-    switch ($options["comparisons"][$field]) {
-    case EQUAL:
-    $query .= " {$field} = :{$field} AND";
-    break;
-    case NOTEQUAL:
-    $query .= " {$field} <> :{$field} AND";
-    break;
-    case LIKE:
-    $query .= " {$field} LIKE :{$field} AND";
-    break;
-    default:
-    throw new Exception("Use for comparison only the constants: EQUAL, NOTEQUAL, LIKE", 400);
-    }
-    }
-    $query = rtrim($query, "AND");
-    } */
 
     /**
      * Delete one (or more) row from the table and return the number of deleted row. 
@@ -205,7 +151,10 @@ class DBTable
      * @return array
      * 
      */
-    public function read(string $rowIdenfingCondition = "", array $rowIdenfingConditionValues = [], array $options = [self::DISABLE_TRHOW_EXCEPTION, self::READ_RETURN_ALWAYS_ARRAY])
+    public function read(string $rowIdenfingCondition = "", 
+                         array $rowIdenfingConditionValues = [], 
+                         array $options = [self::DISABLE_TRHOW_EXCEPTION, self::READ_RETURN_ALWAYS_ARRAY],
+                         string $modelClassName = "") : array | object
     {
 
         $query = "SELECT * FROM {$this->tableName} " . ($rowIdenfingCondition !== "" ? " WHERE " : "") . " " . $rowIdenfingCondition;

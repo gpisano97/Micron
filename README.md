@@ -110,6 +110,15 @@ Provides useful methods for retriving data.
 | `getResourceName(string $className): string or null` | `string $className` => the Resource class name. | Get the ResourceName attribute value of a Micron Resource. | `string` |
 | `normalizeBody(array $allowedKeys, array $body) : array` | `array $allowedKeys` => Contains the keys allowed in the body. e.g. `["user_id", "name"]` <br/> `array $body` => The body to normalize | Take a list of keys and a body and return a new array with only allowed keys | `array` |
 
+### MiddlewareConfiguration
+Provide the configuration of the middleware.
+
+| Name | Parameters | Description | Return value |
+| ---- | ---------- | ----------- | ---------------- |
+| `__construct(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = [])` | `bool $tokenControl` => True value allow the middleware for checking and validate bearer token. False ignore the token. <br/> `bool $isRefreshToken` => True value allow the middleware for checking and validate the refresh token. False will throw an exception if a refresh token provided. <br/> `array $tokenBodyAuthorizedValues` => Allow to set some token body key and the reference value : e.g. ['level' => 'admin'] -> Will block every request where the token body key 'level' is not admin <br/> `array $acceptedContentType` => Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array. <br/> `array $CustomMiddlewares` => Allow to add some middlewares function that will be executed after the default Middleware functionalities.<br/> | Create a MiddlewareConfiguration Object. | MiddlewareConfiguration |
+| `getConfiguration(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = []) : MiddlewareConfiguration` | `bool $tokenControl` => True value allow the middleware for checking and validate bearer token. False ignore the token. <br/> `bool $isRefreshToken` => True value allow the middleware for checking and validate the refresh token. False will throw an exception of InvalidToken if a refresh token provided. <br/> `array $tokenBodyAuthorizedValues` => Allow to set some token body key and the reference value : e.g. `['level' => 'admin']` -> Will block every request where the token body key 'level' is not admin <br/> `array $acceptedContentType` => Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array. <br/> `array $CustomMiddlewares` => Allow to add some middlewares function that will be executed after the default Middleware functionalities. | This function allow to get a MiddlewareConfiguration object without use the 'new' keyword | `MiddlewareConfiguration` |
+
+
 ### Route
 Provides routing method, use this for build your paths.
 

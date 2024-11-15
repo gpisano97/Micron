@@ -107,6 +107,8 @@ Provides useful methods for retriving data.
 | `rrmdir(string $path_to_remove)` | `string $path_to_remove` => a path (on the server's filesystem). | Recursively remove the given path from the server. This function delete both files and folders. | `void` |
 | `log(string $text)` | `string $text` => the text to log. | This function log into a text file the given text. The function will add date and time. The log folder is `/micron-logs` and will be automatically created. | `void` |
 | `fromSecondsToTime(int $seconds)` | `int $seconds` => seconds to convert. | Convert the given seconds in the 'h m s' format. | `string` |
+| `getResourceName(string $className): string or null` | `string $className` => the Resource class name. | Get the ResourceName attribute value of a Micron Resource. | `string` |
+| `normalizeBody(array $allowedKeys, array $body) : array` | `array $allowedKeys` => Contains the keys allowed in the body. e.g. `["user_id", "name"]` <br/> `array $body` => The body to normalize | Take a list of keys and a body and return a new array with only allowed keys | `array` |
 
 ### Route
 Provides routing method, use this for build your paths.

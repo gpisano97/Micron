@@ -46,7 +46,7 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
  * ResourceName attribute for class that implement Resource interface. This attribute can power up the performance of a Micron application. The name of the resource must be the same as the uri root.
  * ORM and DBModel, Micron provides a new ORM that allow to use the code first approach or not. A class that extends the class DBModel will be a "Micron DB Model" and, thanks to his definition, can map a database table and make operations on it.
  	* Every table column must have the `TableField` attribute and a type (php type, php default value or a micron type provided as attribute for each public property of the class that will be a column).
-    	* With `CreateTableIfNotExists` attribute, Micron is able to automatically create and update the model on the database as a table without any manual interaction with the database.
+    * With `CreateTableIfNotExists` attribute, Micron is able to automatically create and update the model on the database as a table without any manual interaction with the database.
  * Custom Middlewares support. Is possible to define one or more class (that implements ICustomMiddleware interface) to use as Custom Middleware. This class can access to the request and manipulate it or validate it before the listener funciton execution.
  * Static files provider. Define your static files folder (usually "public"), make your folders structure and Micron will automatically create all the correct URI for you!
 

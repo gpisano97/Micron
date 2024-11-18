@@ -23,6 +23,7 @@ include_once 'ColumnTypes/Numbers/DbFloat.php';
 include_once 'ColumnTypes/Numbers/DbDouble.php';
 include_once 'ColumnTypes/Strings/Varchar.php';
 include_once 'ColumnTypes/Strings/Text.php';
+include_once 'Attributes/Reference.php';
 include_once 'DBModel.php';
 
 

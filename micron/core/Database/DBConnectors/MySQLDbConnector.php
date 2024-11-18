@@ -11,17 +11,60 @@ use PDO;
 
 final class MySQLDbConnector implements DbConnectorInterface
 {
+    private function getForeignKeyInfo(string $tableName, Database $connection): array{
+       $query = "SHOW CREATE TABLE `$tableName`";
+       $crTableResult = $connection->ExecQuery($query)->fetch(PDO::FETCH_ASSOC)["Create Table"];
+       $crTableRows = explode("\n", $crTableResult);
+       $crTableRows = array_splice($crTableRows, 1, count($crTableRows)-2);
+
+       $remoteColumnData = [];
+
+       foreach ($crTableRows as $column) {
+            if(str_contains($column, "FOREIGN KEY")){
+                $columnSplitted = explode(" ", trim($column));
+                $columnName = substr($columnSplitted[4], 2, strlen($columnSplitted[4]) - 4) ;
+                $tableReferenced = str_replace("`", "", $columnSplitted[6]); 
+                
+                //this way supports more columns
+                $columnRefrenced = substr($columnSplitted[7], 1, strlen($columnSplitted[7] )- 2) ;
+                $columnRefrenced = str_replace("`", "", $columnRefrenced);
+                $columnRefrenced = explode(",", $columnRefrenced);
+
+                $onDeleteOperation = $columnSplitted[10];
+                $onUpdateOperation = $columnSplitted[13];
+
+                $remoteColumnData[$columnName] = [
+                    "column_name" => $columnName,
+                    "table_refrenced" => $tableReferenced,
+                    "columns_referenced" => $columnRefrenced,
+                    "on_delete" =>  $onDeleteOperation,
+                    "on_update" => $onUpdateOperation
+                ];
+            }
+       }
+
+       return $remoteColumnData;
+    }
     public function updateTable(array $columnsData, string $tableName, Database $connection): void
     {
         $resultRemoteColumns = $connection->ExecQuery("SHOW FIELDS FROM {$tableName}");
         $remoteColumns = $resultRemoteColumns->fetchAll(PDO::FETCH_ASSOC);
         $columnsMustChange = [];
+        $foreignKeyInfo = [];
         foreach ($remoteColumns as $remoteColumn) {
             $remoteColumnName = $remoteColumn["Field"];
             $remoteType = $remoteColumn["Type"];
             $remoteIsNullable = $remoteColumn["Null"] === "YES";
             $remoteIsPrimaryKey = $remoteColumn["Key"] === "PRI";
+            $remoteIsForeignKey = $remoteColumn["Key"] === "MUL";
             $remoteDefaultValue = $remoteColumn["Default"];
+
+            if($remoteIsForeignKey && count($foreignKeyInfo) === 0){
+                $foreignKeyInfo = $this->getForeignKeyInfo($tableName, $connection);
+            }
+            else if($remoteIsForeignKey){
+                //check if must update
+            }
 
             if ($remoteDefaultValue === "''") {
                 $remoteDefaultValue = "";
@@ -123,6 +166,9 @@ final class MySQLDbConnector implements DbConnectorInterface
                 else{
                     $alterSql .= "DROP COLUMN `{$columnData["name"]}`";
                 }
+
+                //ALTER TABLE `database_class_example_table` ADD CONSTRAINT `ref` FOREIGN KEY (`id`) REFERENCES `example_table` (`id`) ON UPDATE CASCADE ON DELETE CASCADE;
+
                 
             }
             $alterSql[strlen($alterSql) - 1] = ";"; 

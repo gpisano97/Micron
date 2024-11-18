@@ -12,6 +12,7 @@ use core\Database\Attributes\ColumnTypes\Strings\Varchar;
 use core\Database\Attributes\CreateIfNotExist;
 use core\Database\Attributes\DefaultValue;
 use core\Database\Attributes\PrimaryKey;
+use core\Database\Attributes\Reference;
 use core\Database\Attributes\Table;
 use core\Database\Attributes\TableField;
 use core\Database\DBConnectors\DbConnectorInterface;
@@ -158,6 +159,22 @@ class DBModel
             }
         }
     }
+    
+    private function checkExternalReferences($propertyAttributes, $propertyAttributeNames) {
+        $referenceIndex = array_search(Reference::class, $propertyAttributeNames);
+        $returnData = ["reference" => []];
+        if(is_int($referenceIndex)){
+             $value = $propertyAttributes[$referenceIndex]->getArguments();
+             $instance = $propertyAttributes[$referenceIndex]->newInstance();
+             $returnData["reference"] = [
+                "table" => $value["tableReference"] ?? $value[0],
+                "columns" => $value["columnReferences"] ?? $value[1],
+                "onUpdate" => isset($value["onUpdate"]) ? $value["onUpdate"]->value  : $instance->onUpdate->value,
+                "onDelete" => isset($value["onDelete"]) ? $value["onDelete"]->value : $instance->onDelete->value,
+             ]; 
+        }
+        return $returnData;
+    }
 
     private function convertPhpTypeToDbType(string $phpType)
     {
@@ -297,6 +314,7 @@ class DBModel
                     $nullable = $defaultValue === null;
                 }
 
+                $propertyAttributes = $this->properties[$propertyName]->attributes;
 
                 $columnsData[$propertyName] = [
                     "name" => $propertyName,
@@ -305,8 +323,9 @@ class DBModel
                     "is_autoincrement" => $isAutoincrement,
                     "is_pk" => $is_pk || $isAutoincrement,
                     "is_nullable" => $nullable,
-                    "default_value" => $defaultValue
-                ];
+                    "default_value" => $defaultValue,
+                    "reference" => $this->checkExternalReferences($propertyAttributes, $attributesNames)["reference"]
+                ]; 
                 $i++;
             }
 

@@ -202,6 +202,11 @@ class DataHelper
     }
 
 
+    /**
+     * Get the ResourceName attribute value of a Micron Resource
+     * @param string $className
+     * @return string|null
+     */
     public static function getResourceName(string $className): string | null {
         $reflectionClass = new \ReflectionClass($className);
         $resourceAttributes = $reflectionClass->getAttributes(ResourceName::class);

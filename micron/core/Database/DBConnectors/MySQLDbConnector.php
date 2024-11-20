@@ -268,14 +268,15 @@ final class MySQLDbConnector implements DbConnectorInterface
             $alterSql[strlen($alterSql) - 1] = ";"; 
             $connection->ExecQuery($alterSql);
         }
-        $this->manageTableExternalReference($tableName, $connection, $fksAdd, $fksRemove, $columnsData);
+        if(count($fksRemove) > 0 || count($fksAdd) > 0)
+            $this->manageTableExternalReference($tableName, $connection, $fksAdd, $fksRemove, $columnsData);
     }
 
     public function createTable(array $columnsData, string $tableName, Database $connection): void
     {
-
         $primaryKeys = [];
         $columnSQL = "";
+        $fksToAdd = [];
         foreach ($columnsData as $column) {
             if ($column["is_pk"]) {
                 $primaryKeys[] = $column;
@@ -298,6 +299,10 @@ final class MySQLDbConnector implements DbConnectorInterface
                 $columnSQL .= " DEFAULT '{$column["default_value"]}'";
             }
             $columnSQL .= ",";
+
+            if($columnsData["reference"] !== null){
+                array_push($fksToAdd, $column["name"]);
+            }
         }
 
         if(count($primaryKeys) === 0){
@@ -314,5 +319,9 @@ final class MySQLDbConnector implements DbConnectorInterface
         )COLLATE='utf8mb4_general_ci'";
 
         $connection->ExecQuery($sql);
+        if(count($fksToAdd) > 0){
+            $this->manageTableExternalReference($tableName,  $connection, [], $fksToAdd, $columnsData);
+        }
+        
     }
 }

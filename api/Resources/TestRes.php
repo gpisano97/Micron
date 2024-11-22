@@ -36,7 +36,7 @@ final class Test2 extends DBModel {
     public $test2_id;
 
     #[TableField]
-   /*  #[Reference("test1", ["test1_id"])] */
+    #[Reference("test1", ["test1_id"])]
     #[BigInt()]
     public $test1_id;
 

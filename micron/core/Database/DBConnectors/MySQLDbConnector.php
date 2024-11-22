@@ -11,22 +11,23 @@ use PDO;
 
 final class MySQLDbConnector implements DbConnectorInterface
 {
-    private function getForeignKeyInfo(string $tableName, Database $connection): array{
-       $query = "SHOW CREATE TABLE `$tableName`";
-       $crTableResult = $connection->ExecQuery($query)->fetch(PDO::FETCH_ASSOC)["Create Table"];
-       $crTableRows = explode("\n", $crTableResult);
-       $crTableRows = array_splice($crTableRows, 1, count($crTableRows)-2);
+    private function getForeignKeyInfo(string $tableName, Database $connection): array
+    {
+        $query = "SHOW CREATE TABLE `$tableName`";
+        $crTableResult = $connection->ExecQuery($query)->fetch(PDO::FETCH_ASSOC)["Create Table"];
+        $crTableRows = explode("\n", $crTableResult);
+        $crTableRows = array_splice($crTableRows, 1, count($crTableRows) - 2);
 
-       $remoteColumnData = [];
+        $remoteColumnData = [];
 
-       foreach ($crTableRows as $column) {
-            if(str_contains($column, "FOREIGN KEY")){
+        foreach ($crTableRows as $column) {
+            if (str_contains($column, "FOREIGN KEY")) {
                 $columnSplitted = explode(" ", trim($column));
-                $columnName = substr($columnSplitted[4], 2, strlen($columnSplitted[4]) - 4) ;
-                $tableReferenced = str_replace("`", "", $columnSplitted[6]); 
-                
+                $columnName = substr($columnSplitted[4], 2, strlen($columnSplitted[4]) - 4);
+                $tableReferenced = str_replace("`", "", $columnSplitted[6]);
+
                 //this way supports more columns
-                $columnRefrenced = substr($columnSplitted[7], 1, strlen($columnSplitted[7] )- 2) ;
+                $columnRefrenced = substr($columnSplitted[7], 1, strlen($columnSplitted[7]) - 2);
                 $columnRefrenced = str_replace("`", "", $columnRefrenced);
                 $columnRefrenced = explode(",", $columnRefrenced);
 
@@ -40,13 +41,13 @@ final class MySQLDbConnector implements DbConnectorInterface
                     "reference_name" => $referenceName,
                     "table_refrenced" => $tableReferenced,
                     "columns_referenced" => $columnRefrenced,
-                    "on_delete" =>  $onDeleteOperation,
+                    "on_delete" => $onDeleteOperation,
                     "on_update" => $onUpdateOperation
                 ];
             }
-       }
+        }
 
-       return $remoteColumnData;
+        return $remoteColumnData;
     }
 
     /**
@@ -57,15 +58,9 @@ final class MySQLDbConnector implements DbConnectorInterface
      * @param mixed $fksToAdd => ["columnNames"]
      * @return void
      */
-    private function manageTableExternalReference($tableName, Database $connection, $fksToRemove = [], $fksToAdd = [], $columnsData = []){
-        $transactionAlreadiActive = false;
-        if($connection->inTransaction()){
-            $transactionAlreadiActive = true;
-        }
-        else{
-            $connection->beginTransaction();
-        }
-        if(count($fksToRemove) > 0){
+    private function manageTableExternalReference($tableName, Database $connection, $fksToRemove = [], $fksToAdd = [], $columnsData = [])
+    {
+        if (count($fksToRemove) > 0) {
             $query = "ALTER TABLE `$tableName` ";
             foreach ($fksToRemove as $fkToRemove) {
                 $query .= "DROP FOREIGN KEY `{$fkToRemove["reference_name"]}`, ";
@@ -74,28 +69,25 @@ final class MySQLDbConnector implements DbConnectorInterface
             $connection->ExecQuery($query);
         }
 
-        if(count($fksToAdd) > 0){
+        if (count($fksToAdd) > 0) {
             $query = "ALTER TABLE `$tableName` ";
             foreach ($fksToAdd as $fkToAdd) {
-                $columnData = $columnsData[$fksToAdd];
-                if(isset($columnData["reference"])){
-                    $constraintName = "{$tableName}_refer_{$columnData["table"]}";
-                    
-                    $refCols = implode(array_map(function($item){
-                        return "`$item`";
-                    }, $columnData["columns"]));
+                $columnData = $columnsData[$fkToAdd];
+                if (isset($columnData["reference"]) && is_array($columnData["reference"]) && count($columnData["reference"]) > 0) {
+                    $constraintName = "{$tableName}_refer_{$columnData["reference"]["table"]}";
 
-                    $onDelete = $columnData["onDelete"];
-                    $onUpdate = $columnData["onUpdate"];
-                    $query .= "ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$fksToAdd`) REFERENCES `{$columnData["table"]}` (`$refCols`) ON UPDATE $onUpdate ON DELETE $onDelete, ";
+                    $refCols = implode(array_map(function ($item) {
+                        return "`$item`";
+                    }, $columnData["reference"]["columns"]));
+
+                    $onDelete = $columnData["reference"]["onDelete"];
+                    $onUpdate = $columnData["reference"]["onUpdate"];
+                    $query .= "ADD CONSTRAINT `$constraintName` FOREIGN KEY (`$fkToAdd`) REFERENCES `{$columnData["reference"]["table"]}` ($refCols) ON UPDATE $onUpdate ON DELETE $onDelete, ";
                 }
             }
 
             $query = substr($query, 0, strlen($query) - 2);
             $connection->ExecQuery($query);
-        }
-        if(!$transactionAlreadiActive){
-            $connection->commit();
         }
     }
     public function updateTable(array $columnsData, string $tableName, Database $connection): void
@@ -114,7 +106,7 @@ final class MySQLDbConnector implements DbConnectorInterface
             $remoteIsForeignKey = $remoteColumn["Key"] === "MUL";
             $remoteDefaultValue = $remoteColumn["Default"];
 
-            if($remoteIsForeignKey && count($foreignKeyInfo) === 0){
+            if ($remoteIsForeignKey && count($foreignKeyInfo) === 0) {
                 $foreignKeyInfo = $this->getForeignKeyInfo($tableName, $connection);
             }
 
@@ -163,47 +155,57 @@ final class MySQLDbConnector implements DbConnectorInterface
 
                 $mustRemoveFK = false;
                 $mustChangeFK = false;
-                if($remoteIsForeignKey){
-                    if($classColumn["reference"] === null){
+                if ($remoteIsForeignKey) {
+                    if ($classColumn["reference"] === null || count($classColumn["reference"]) === 0) {
                         $mustRemoveFK = true;
-                    }
-                    else {
-                        $remoteForeignKey = $foreignKeyInfo[$remoteColumnName];
-                        if($remoteForeignKey["table_refrenced"] != $classColumn["reference"]["table"]){
+                    } else {
+                        $remoteForeignKey = null;
+                        if(isset($foreignKeyInfo[$remoteColumnName]))
+                        {
+                            $remoteForeignKey = $foreignKeyInfo[$remoteColumnName];
+                        }
+
+                        if($remoteForeignKey === null){
                             $mustChangeFK = true;
                         }
-                        $sorting = function($a, $b){
-                            if($a < $b)
-                                return -1;
-                            if($b > $a)
-                                return 1;
-                            return 0;
-                        };
-                       
-                        usort($remoteForeignKey["columns_referenced"], $sorting );
-                        usort($classColumn["reference"]["columns"], $sorting );
-    
-                        if(implode($remoteForeignKey["columns_referenced"]) !== implode($classColumn["reference"]["columns"])){
-                            $mustChangeFK = true;
-                        }
-                        if($remoteForeignKey["on_update"] !== $classColumn["reference"]["onUpdate"]){
-                            $mustChangeFK = true;
-                        }
-                        if($remoteForeignKey["on_delete"] !== $classColumn["reference"]["onDelete"]){
-                            $mustChangeFK = true;
+                        if ($remoteForeignKey !== null) {
+
+                            if ($remoteForeignKey["table_refrenced"] != $classColumn["reference"]["table"]) {
+                                $mustChangeFK = true;
+                            }
+                            $sorting = function ($a, $b) {
+                                if ($a < $b)
+                                    return -1;
+                                if ($b > $a)
+                                    return 1;
+                                return 0;
+                            };
+
+                            usort($remoteForeignKey["columns_referenced"], $sorting);
+                            usort($classColumn["reference"]["columns"], $sorting);
+
+                            if (implode($remoteForeignKey["columns_referenced"]) !== implode($classColumn["reference"]["columns"])) {
+                                $mustChangeFK = true;
+                            }
+                            if ($remoteForeignKey["on_update"] !== $classColumn["reference"]["onUpdate"]) {
+                                $mustChangeFK = true;
+                            }
+                            if ($remoteForeignKey["on_delete"] !== $classColumn["reference"]["onDelete"]) {
+                                $mustChangeFK = true;
+                            }
                         }
                     }
                     //in order to remove or updates column reference
-                    if($mustRemoveFK || $mustChangeFK){
+                    if ($mustRemoveFK || ($mustChangeFK && $remoteForeignKey !== null)) {
                         $fksRemove[] = $remoteForeignKey["reference_name"];
                     }
                     //this means that the reference already exist on DB, but we can change it
-                    if($mustChangeFK){
+                    if ($mustChangeFK) {
                         $fksAdd[] = $remoteColumnName;
                     }
-                    
+
                 } //below if the reference not exists on the db but exist in the class.
-                else if($classColumn["reference"] !== null){
+                else if (is_array($classColumn["reference"]) && count($classColumn["reference"]) > 0) {
                     $fksAdd[] = $remoteColumnName;
                 }
 
@@ -219,7 +221,7 @@ final class MySQLDbConnector implements DbConnectorInterface
         }
 
         foreach ($columnsData as $columnData) {
-            if(!isset($columnData["found"])){
+            if (!isset($columnData["found"])) {
                 $columnsMustChange[$columnData["name"]] = [
                     "name" => $columnData["name"],
                     "operation" => "add"
@@ -232,17 +234,16 @@ final class MySQLDbConnector implements DbConnectorInterface
             $alterSql = "ALTER TABLE `{$tableName}` ";
 
             foreach ($columnsMustChange as $columnToChange) {
-                if($columnToChange["operation"] === "update" || $columnToChange["operation"] === "add"){
+                if ($columnToChange["operation"] === "update" || $columnToChange["operation"] === "add") {
                     $columnData = $columnsData[$columnToChange["name"]];
-                    if($columnToChange["operation"] === "add"){
-                        $alterSql .= "ADD COLUMN "; 
+                    if ($columnToChange["operation"] === "add") {
+                        $alterSql .= "ADD COLUMN ";
+                    } else {
+                        $alterSql .= "CHANGE COLUMN `{$columnToChange["name"]}` ";
                     }
-                    else{
-                        $alterSql .= "CHANGE COLUMN `{$columnToChange["name"]}` "; 
-                    }
-                    
+
                     $alterSql .= "`{$columnToChange["name"]}` ";
-                    
+
                     $alterSql .= "{$columnData["type"]}";
                     if ($columnData["length"] !== null) {
                         $alterSql .= "({$columnData["length"]})";
@@ -252,7 +253,7 @@ final class MySQLDbConnector implements DbConnectorInterface
                     } else {
                         $alterSql .= " NOT NULL";
                     }
-        
+
                     if ($columnData["is_autoincrement"]) {
                         $alterSql .= " AUTO_INCREMENT";
                     }
@@ -260,16 +261,23 @@ final class MySQLDbConnector implements DbConnectorInterface
                         $alterSql .= " DEFAULT '{$columnData["default_value"]}'";
                     }
                     $alterSql .= ",";
-                }
-                else if($columnToChange["operation"] === "remove"){
+                } else if ($columnToChange["operation"] === "remove") {
                     $alterSql .= "DROP COLUMN `{$columnData["name"]}`";
-                }                
+                }
             }
-            $alterSql[strlen($alterSql) - 1] = ";"; 
+            $alterSql[strlen($alterSql) - 1] = ";";
             $connection->ExecQuery($alterSql);
         }
-        if(count($fksRemove) > 0 || count($fksAdd) > 0)
-            $this->manageTableExternalReference($tableName, $connection, $fksAdd, $fksRemove, $columnsData);
+        if (count($fksRemove) > 0 || count($fksAdd) > 0) {
+            try {
+                $this->manageTableExternalReference($tableName, $connection, $fksRemove, $fksAdd, $columnsData);
+            } catch (\Throwable $th) {
+                $query = "DROP TABLE `{$tableName}`";
+                $connection->ExecQuery($query);
+            }
+
+        }
+
     }
 
     public function createTable(array $columnsData, string $tableName, Database $connection): void
@@ -277,6 +285,7 @@ final class MySQLDbConnector implements DbConnectorInterface
         $primaryKeys = [];
         $columnSQL = "";
         $fksToAdd = [];
+
         foreach ($columnsData as $column) {
             if ($column["is_pk"]) {
                 $primaryKeys[] = $column;
@@ -300,28 +309,27 @@ final class MySQLDbConnector implements DbConnectorInterface
             }
             $columnSQL .= ",";
 
-            if($columnsData["reference"] !== null){
+            if (is_array($column["reference"]) && count($column["reference"]) > 0) {
                 array_push($fksToAdd, $column["name"]);
             }
         }
 
-        if(count($primaryKeys) === 0){
+        if (count($primaryKeys) === 0) {
             $columns = substr($columnSQL, 0, strlen($columnSQL) - 1);
         }
 
         $primaryKeysSQL = implode(array_map(function ($item) {
             return "`{$item["name"]}`";
         }, $primaryKeys));
-        
+
         $sql = "CREATE TABLE IF NOT EXISTS `{$tableName}` (
         $columnSQL
-        ".(count($primaryKeys) > 0 ? "PRIMARY KEY ($primaryKeysSQL)" : "")."
+        " . (count($primaryKeys) > 0 ? "PRIMARY KEY ($primaryKeysSQL)" : "") . "
         )COLLATE='utf8mb4_general_ci'";
 
         $connection->ExecQuery($sql);
-        if(count($fksToAdd) > 0){
-            $this->manageTableExternalReference($tableName,  $connection, [], $fksToAdd, $columnsData);
+        if (count($fksToAdd) > 0) {
+            $this->manageTableExternalReference($tableName, $connection, [], $fksToAdd, $columnsData);
         }
-        
     }
 }

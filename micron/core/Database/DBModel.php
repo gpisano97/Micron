@@ -261,12 +261,20 @@ class DBModel
 
                         $columnType = $columnType::name;
                         $value = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->getArguments();
+
+                        $instance = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->newInstance();
+                        $valueI = $instance->length ?? null;
                         if (count($value) > 0) {
                             $columnValueLength = $value[0];
                             if(isset($value["length"])){
                                 $columnValueLength = $value["length"];
                             }
                         }
+                        if($columnValueLength === null && $valueI !== null )
+                        {
+                            $columnValueLength = $valueI;
+                        }
+    
                     } else {
                         $columnType = null;
                     }

@@ -11,6 +11,7 @@ use core\Database\Attributes\TableField;
 use core\Database\DBModel;
 use core\MiddlewareConfiguration;
 use core\Resource;
+use core\Response;
 
 require_once "micron/Micron.php";
 
@@ -38,7 +39,7 @@ final class Test2 extends DBModel {
     #[TableField]
     #[Reference("test1", ["test1_id"])]
     #[BigInt()]
-    public $test1_id;
+    public $test1;
 
     #[TableField]
     #[Varchar(50)]
@@ -53,7 +54,11 @@ final class TestRes implements Resource
             "test",
             function (Request $request) {
                 new Test1();
-                new Test2();
+                $t2 = new Test2();
+
+                $t2->test2_id = 1;
+
+                Response::instance()->success("", $t2->read());
             },
             middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false)
         );

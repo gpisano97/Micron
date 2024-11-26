@@ -46,11 +46,12 @@ class DBModel
     private $tableName = "";
     private Database $db;
 
-    private DbConnectorInterface | null $dbConnector;
+    private DbConnectorInterface|null $dbConnector;
 
     private $fieldsToIgnore = [];
-    private $primaryKeys = []; 
+    private $primaryKeys = [];
     private $autoIncrements = [];
+    private $referencesKeys = []; // propertyName => ["table", "columns"]
     private $properties = []; //contains the class properties. Every entry is an object of PropertyInfo (Reflection Property, attributes, attributes names). This is an associative array, the key is the property name.
     private $propertiesKeys = []; //this array contains the propertyNames, every entry allows to access the properties array.
     private ReflectionClass $reflectionClass; //the reflection of the class. In usecase contains the child class.
@@ -110,6 +111,12 @@ class DBModel
             if (in_array(PrimaryKey::class, $propertyAttributeNames)) {
                 $this->primaryKeys[$field] = 1;
             }
+
+            $data = $this->checkExternalReferences($propertyAttributes, $propertyAttributeNames)["reference"];
+            if(count($data) > 0){
+                $this->referencesKeys[$field] = $data;
+            }
+            
         }
 
         //here put the manageTableOnDatabase function
@@ -148,10 +155,9 @@ class DBModel
         if ($this->tableName === "") {
             $attribute = $this->reflectionClass->getAttributes(Table::class);
             $reflectionArguments = $attribute[0]->getArguments();
-            if(isset($reflectionArguments["tableName"])){
-                $this->tableName = $reflectionArguments["tableName"];    
-            }
-            else{
+            if (isset($reflectionArguments["tableName"])) {
+                $this->tableName = $reflectionArguments["tableName"];
+            } else {
                 $this->tableName = $reflectionArguments[0];
             }
             if ($this->tableName === "") {
@@ -159,19 +165,20 @@ class DBModel
             }
         }
     }
-    
-    private function checkExternalReferences($propertyAttributes, $propertyAttributeNames) {
+
+    private function checkExternalReferences($propertyAttributes, $propertyAttributeNames)
+    {
         $referenceIndex = array_search(Reference::class, $propertyAttributeNames);
         $returnData = ["reference" => []];
-        if(is_int($referenceIndex)){
-             $value = $propertyAttributes[$referenceIndex]->getArguments();
-             $instance = $propertyAttributes[$referenceIndex]->newInstance();
-             $returnData["reference"] = [
+        if (is_int($referenceIndex)) {
+            $value = $propertyAttributes[$referenceIndex]->getArguments();
+            $instance = $propertyAttributes[$referenceIndex]->newInstance();
+            $returnData["reference"] = [
                 "table" => $value["tableReference"] ?? $value[0],
                 "columns" => $value["columnReferences"] ?? $value[1],
-                "onUpdate" => isset($value["onUpdate"]) ? $value["onUpdate"]->value  : $instance->onUpdate->value,
+                "onUpdate" => isset($value["onUpdate"]) ? $value["onUpdate"]->value : $instance->onUpdate->value,
                 "onDelete" => isset($value["onDelete"]) ? $value["onDelete"]->value : $instance->onDelete->value,
-             ]; 
+            ];
         }
         return $returnData;
     }
@@ -196,12 +203,12 @@ class DBModel
     private function manageTableOnDatabase(): void
     {
         $attributes = $this->reflectionClass->getAttributes(CreateIfNotExist::class);
-        
-        $thereIsCreateIfNotExistAttribute = count($attributes) >= 1; 
-        
+
+        $thereIsCreateIfNotExistAttribute = count($attributes) >= 1;
+
         $tableExist = $this->db->ExecQuery("SHOW TABLES LIKE '{$this->tableName}'")->rowCount() !== 0;
-        
-        $mustCreateTable = $thereIsCreateIfNotExistAttribute; 
+
+        $mustCreateTable = $thereIsCreateIfNotExistAttribute;
         //must implement "Update if different" mechanism, add an Attribute UpdateTableIfDifferent
         if ($mustCreateTable) {
             //create the table on DB according to public properties.
@@ -266,15 +273,14 @@ class DBModel
                         $valueI = $instance->length ?? null;
                         if (count($value) > 0) {
                             $columnValueLength = $value[0];
-                            if(isset($value["length"])){
+                            if (isset($value["length"])) {
                                 $columnValueLength = $value["length"];
                             }
                         }
-                        if($columnValueLength === null && $valueI !== null )
-                        {
+                        if ($columnValueLength === null && $valueI !== null) {
                             $columnValueLength = $valueI;
                         }
-    
+
                     } else {
                         $columnType = null;
                     }
@@ -285,7 +291,7 @@ class DBModel
                     if (is_int($defaultAttributeIndex)) {
                         $value = $this->properties[$propertyName]->attributes[$defaultAttributeIndex]->getArguments();
                         $defaultValue = $value[0];
-                        if(isset($value["value"])){
+                        if (isset($value["value"])) {
                             $defaultValue = $value["value"];
                         }
                         //type inference.
@@ -305,9 +311,9 @@ class DBModel
                     }
 
                     //checking column type by property type
-                    if($columnType === null){
+                    if ($columnType === null) {
                         $propertyType = $property->getType();
-                        if($propertyType !== null){
+                        if ($propertyType !== null) {
                             $columnType = $this->convertPhpTypeToDbType($propertyType->getName());
                         }
                     }
@@ -333,17 +339,16 @@ class DBModel
                     "is_nullable" => $nullable,
                     "default_value" => $defaultValue,
                     "reference" => $this->checkExternalReferences($propertyAttributes, $attributesNames)["reference"]
-                ]; 
+                ];
                 $i++;
             }
 
-            if($tableExist){
+            if ($tableExist) {
                 $this->dbConnector->updateTable($columnsData, $this->tableName, $this->db);
-            }
-            else{
+            } else {
                 $this->dbConnector->createTable($columnsData, $this->tableName, $this->db);
             }
-            
+
         }
     }
 
@@ -441,11 +446,10 @@ class DBModel
             if (!isset($this->autoIncrements[$property])) {
                 $into .= $property . ",";
                 $values .= ":" . $property . ",";
-                if(is_bool($this->$property)){
+                if (is_bool($this->$property)) {
                     $data[$property] = $data[$property] ? 1 : 0;
-                }
-                else {
-                    $data[$property] = $this->$property;    
+                } else {
+                    $data[$property] = $this->$property;
                 }
             }
             $index++;
@@ -491,17 +495,51 @@ class DBModel
             $i++;
         }
 
-        $query = "SELECT *
-                 FROM {$this->tableName}
-                 WHERE 1=1 $condition";
+        $joins = "";
+        /* $i = 0;
+        $references = array_keys($this->referencesKeys);
+        $joinsCount = count($references);
+        while($i < $joinsCount){
+            $tableField = $references[$i];
+            
+            $referenceTableName = $this->referencesKeys[$tableField]["table"];
+            $referencesColumns = $this->referencesKeys[$tableField]["columns"];
+            if($referenceTableName !== $this->tableName){
+                $joins .= "INNER JOIN $referenceTableName t$i ON t{$i}.{$referencesColumns[0]} = {$this->tableName}.{$tableField} ";
+            }
+            $i++;
+        } */
+
+        $query = "SELECT *\n";
+        $query .= "FROM {$this->tableName} \n";        
+        if($joins !== ""){
+            $query .= "$joins \n";
+        }
+        $query .= "WHERE 1=1 $condition";
 
         $result = $this->db->ExecQuery($query, $data);
 
         //throwing exception on fetch data failure.
-        if($result->rowCount() === 0){
+        if ($result->rowCount() === 0) {
             throw new Exception("Data not found.", 404);
         }
         $data = $result->fetch(PDO::FETCH_ASSOC);
+
+        $i = 0;
+        $references = array_keys($this->referencesKeys);
+        $joinsCount = count($references);
+        while($i < $joinsCount){
+            $tableField = $references[$i];
+            
+            $referenceTableName = $this->referencesKeys[$tableField]["table"];
+            $referencesColumns = $this->referencesKeys[$tableField]["columns"];
+            
+            $refTable = new $referenceTableName();
+            $refTable->{$referencesColumns[0]} = $data[$tableField];
+            $refTable->read();
+            $data[$tableField] = $refTable;
+            $i++;
+        }
 
         //filling properties with DB data
         $i = 0;
@@ -514,6 +552,8 @@ class DBModel
             }
             $i++;
         }
+
+        //$this->test1_id = $rt;
 
         return $this;
     }
@@ -600,14 +640,14 @@ class DBModel
     {
         $query = "UPDATE {$this->tableName} SET ";
         $primaryKeysCount = count($this->primaryKeys);
-        if($primaryKeysCount === 0 && $condition === ""){
+        if ($primaryKeysCount === 0 && $condition === "") {
             throw new Exception("You must add at least one PrimaryKey property or set a condition in order to perform this operation.");
         }
         $queryData = [];
-        if($primaryKeysCount > 0 && $condition === ""){
+        if ($primaryKeysCount > 0 && $condition === "") {
             $conditionByPKs = $this->getConditionByPrimaryKeys();
 
-            if($conditionByPKs->condition === ""){
+            if ($conditionByPKs->condition === "") {
                 throw new Exception("Update error. Your Primary Keys attributes are not initialized and 'condition argument' is not setted.");
             }
 
@@ -620,9 +660,9 @@ class DBModel
         $fieldToUpdate = array_values(array_diff($this->propertiesKeys, $primaryKeys));
 
         $propertyIndex = 0;
-        while($propertyIndex < count($fieldToUpdate)){
-            $fieldName = $fieldToUpdate[$propertyIndex]; 
-            $query .=  "$fieldName= :$fieldName,";
+        while ($propertyIndex < count($fieldToUpdate)) {
+            $fieldName = $fieldToUpdate[$propertyIndex];
+            $query .= "$fieldName= :$fieldName,";
             $queryData[$fieldName] = $this->$fieldName;
             $propertyIndex++;
         }

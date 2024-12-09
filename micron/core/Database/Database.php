@@ -7,8 +7,7 @@ use PDO;
 use PDOException;
 use PDOStatement;
 
-include_once $_SERVER["DOCUMENT_ROOT"] . '/config.php';
-
+include_once 'config.php';
 include_once 'DBTable.php';
 include_once 'Attributes/Table.php';
 include_once 'Attributes/PrimaryKey.php';

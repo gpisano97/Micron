@@ -8,7 +8,7 @@ A small and usefull PHP Api REST framework.
 * [Setup](#setup)
 * [Features](#features)
 * [Incoming Features](#incoming-features)
-* [Tutorial](#tutorial)
+* [Demo](#tutorial)
 * [Utilization](#utilization)
 * [API](#api)
 
@@ -34,27 +34,30 @@ Micron is a fantastic tool for create Web Applications with PHP. Micron main goa
 
 * Create readable and dynamic URI in order to reach the resources.
 	* Definitions of typed or not-typed path params -> `/example/{param:string}` or `/example/{param:numeric}` or `/example/{param}`
-	* Definitions of typed or not-typed query params. You can define wich query params is allowed and their types (if they have). Fill the key `allowedQueryParams` with an array like this `["queryp1" => "string", "queryp2" => "numeric", "queryp3"]` 
-* JWT Library Class, this class allow to create and manage JWT Token.
+	* Definitions of typed or not-typed query params. You can define wich query params is allowed and their types (if they have). Fill the key `allowedQueryParams` with an array like this `["queryp1" => "string", "queryp2" => "numeric", "queryp3"]`
+ 	* UriParam class helper for uri params. Manage param name ad type.
+* JWT Library Class, this class allow to create and manage JWT Token with refresh token support.
 * Database Library Class, this class allow the interactions with a MySql database, including query execution with parameters, transactions and also the Table class, a powerfull class that allow you to make the CRUD operations on a table.
 * Response Library Class, this class provide a usefull set of json encoded response with the correct HTTP Code. It also provide the `provideFile`method for file download and the `textAsHTML` method that generate an html type response.
 * FilesManager Library Class. this class provide a set of functions to upload, manage and download file with your Micron-based application. The class store the file in a very organized way based on integer file id.
-* Resource Interface. This is a new entry, the classes that implements this interface are handled by Micron as resources!
+* Resource Interface. The classes that implements this interface are handled by Micron as resources!
 	* Using the `registerResources`  method provided by Route Class, you can register your own resource Class. The parameter is an array wich can contains both string's class name and class instance -> `registerResources(['ClassResourceName', new ClassResource()])`. Obviously in order to make this work you must require your class php's file where you call registerResources method (i suggest to do this in the index.php file). This method runs the `listen` function inherited from Resource interface, in the listen function you must put your resource's end points.
  * Resources auto-discover. Micron is now able to locale all PHP class that implements the Resource interface and to run the listen function! This make the code a lot cleaner and organized.
+ * ResourceName attribute for class that implement Resource interface. This attribute can power up the performance of a Micron application. The name of the resource must be the same as the uri root.
+ * ORM and DBModel, Micron provides a new ORM that allow to use the code first approach or not. A class that extends the class DBModel will be a "Micron DB Model" and, thanks to his definition, can map a database table and make operations on it.
+ 	* Every table column must have the `TableField` attribute and a type (php type, php default value or a micron type provided as attribute for each public property of the class that will be a column).
+    * With `CreateTableIfNotExists` attribute, Micron is able to automatically create and update the model on the database as a table without any manual interaction with the database.
+ * Custom Middlewares support. Is possible to define one or more class (that implements ICustomMiddleware interface) to use as Custom Middleware. This class can access to the request and manipulate it or validate it before the listener funciton execution.
  * Static files provider. Define your static files folder (usually "public"), make your folders structure and Micron will automatically create all the correct URI for you!
 
 ## Incoming Features
 Some very cool features are almost ready for release! Let's see some of them :
 
-* CustomMiddlewares
-* UriParam class to build cleaner uri
-* Database ORM.
 * .env file support.
 
  
 
-## Tutorial
+## Demo
 This section contains a complete tutorial on Micron in form of little standalone demos! I suggest to follow the order of the demos because the usage will become more advanced, cool and tidy for every demo!
 
 * [Basic usage](https://drive.google.com/file/d/1mY8RoMx6-dnDTETUU4qtN4LbOkhE_Zuf/view?usp=drive_link)
@@ -64,21 +67,19 @@ I suggest to don't use this demos as real project starting files, remember to al
 
 
 ## Utilization
-Be inspierd by `api` folder, when you clone the repo this folder contains a working database-less example for auth, GET and POST request.
-Micron is very easy to use, follow this simple steps:
+I highly suggest to download the demos (from the Demo section) and examine it. The demo cover a lot of use cases of Micron.
 
 * Create a resource's php file. To access all Micron functions you only need to require `Micron.php`. In this file put all your resource's functions.
 * Defining a resource function you need to add a funciton parameter of type's Request. In this function parameter you will find all request informations like the request body or the query params.
 * Create a response object from Response class, this provides all methods for JSON responses.
-* Wrap your code with a `try-catch` block, this will help you to manage errors. Every exception throw by the helper classes containts the relative HTTP code, so (just see the example file) in the `catch` section put this code `$response->response($e->getMessage(), array(), false, $e->getCode() );` this will send the exception relative JSON response.
 * in the `try` section put your resource code, make your database code and don't forget to take the token if required (`$token = DataHelper::getToken();`) and verify it (`JWT::verify($token)`);
-* in `index.php` write your route: create an object from Route class (already done in the code) and use his methods to define the route. All methods accept 5 parameters:
+* In you Resource (remember, a class that implements the Resource interface), you can access (through the `listen` function) to a `Route` object, using it you can access to the routes methods. All methods accept 5 parameters:
   1. `string $route` -> URI of the resources, can accept multiple parameters in bracket (example `product/{id}` in the `$params` array you will find a key `id` with         the correct value: `product/1` -> $params["id"] will contain `1`.
   2. `$callback` -> this parameter has to be an anonymous function, and will be a function defined in php files in `api` folder. If you want to access Request data don't forget to pass the $request paramater.
   3. `array $header` put here your headers. There are preconfigured array but don't worry, you can use what header you prefer. The form has to be "header" => "value"
       for example : `Access-Control-Allow-Origin : *` in the array will be `"Access-Control-Allow-Origin" => "*"`.
   4. `array $allowedQueryParams`, in this array you have to put all the allowed keys passed like variables in the URI.
-  5. `array $middlewareSettings`, you can define 2 keys for this array : TOKEN_CONTROL -> is a boolean value, if true the Middleware will check for the token; TOKEN_AUTH -> is an array, in this array you have to put some keys existent in the token body with the expected value.
+  5. `MiddlewareConfiguration $middlewareSettings`, you can define the middleware behavior providing a MiddlewareConfiguration object. There is a usefull method that allow to provide a configuration object without explicit instantiation.
 * Now define the route according to the desired parameters, (check the example in source code, is very clear). `Route class` has a method for every HTTP method, and you can repeat the same URI with a different method: `$route->get("example", function(){ myGETFunction();});` and `$route->post("example", function(){myPOSTFunction();});` will be two different paths!
 * Is strongly reccomended to follow the REST guidelines in the routes definition:
   1. `$route->post()` -> create resource.
@@ -89,6 +90,8 @@ Micron is very easy to use, follow this simple steps:
 * **Enjoy Micron and check the API section for other useful method!**
 
 ## API
+
+The API Section is currently under updating. The documentation below is relative to an old version of Micron. I suggest to check the Demo section.
 
 ### DataHelper
 Provides useful methods for retriving data.
@@ -104,17 +107,28 @@ Provides useful methods for retriving data.
 | `rrmdir(string $path_to_remove)` | `string $path_to_remove` => a path (on the server's filesystem). | Recursively remove the given path from the server. This function delete both files and folders. | `void` |
 | `log(string $text)` | `string $text` => the text to log. | This function log into a text file the given text. The function will add date and time. The log folder is `/micron-logs` and will be automatically created. | `void` |
 | `fromSecondsToTime(int $seconds)` | `int $seconds` => seconds to convert. | Convert the given seconds in the 'h m s' format. | `string` |
+| `getResourceName(string $className): string or null` | `string $className` => the Resource class name. | Get the ResourceName attribute value of a Micron Resource. | `string` |
+| `normalizeBody(array $allowedKeys, array $body) : array` | `array $allowedKeys` => Contains the keys allowed in the body. e.g. `["user_id", "name"]` <br/> `array $body` => The body to normalize | Take a list of keys and a body and return a new array with only allowed keys | `array` |
+
+### MiddlewareConfiguration
+Provide the configuration of the middleware.
+
+| Name | Parameters | Description | Return value |
+| ---- | ---------- | ----------- | ---------------- |
+| `__construct(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = [])` | `bool $tokenControl` => True value allow the middleware for checking and validate bearer token. False ignore the token. <br/> `bool $isRefreshToken` => True value allow the middleware for checking and validate the refresh token. False will throw an exception if a refresh token provided. <br/> `array $tokenBodyAuthorizedValues` => Allow to set some token body key and the reference value : e.g. ['level' => 'admin'] -> Will block every request where the token body key 'level' is not admin <br/> `array $acceptedContentType` => Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array. <br/> `array $CustomMiddlewares` => Allow to add some middlewares function that will be executed after the default Middleware functionalities.<br/> | Create a MiddlewareConfiguration Object. | MiddlewareConfiguration |
+| `getConfiguration(bool $tokenControl = true, bool $isRefreshToken = false, array $tokenBodyAuthorizedValues = [], array $acceptedContentType = [], array $CustomMiddlewares = []) : MiddlewareConfiguration` | `bool $tokenControl` => True value allow the middleware for checking and validate bearer token. False ignore the token. <br/> `bool $isRefreshToken` => True value allow the middleware for checking and validate the refresh token. False will throw an exception of InvalidToken if a refresh token provided. <br/> `array $tokenBodyAuthorizedValues` => Allow to set some token body key and the reference value : e.g. `['level' => 'admin']` -> Will block every request where the token body key 'level' is not admin <br/> `array $acceptedContentType` => Allow to set the accepted content type for the request. IMPORTANT, for GET requests put inside 'none'. By Default 'none' is already in the array. <br/> `array $CustomMiddlewares` => Allow to add some middlewares function that will be executed after the default Middleware functionalities. | This function allow to get a MiddlewareConfiguration object without use the 'new' keyword | `MiddlewareConfiguration` |
+
 
 ### Route
 Provides routing method, use this for build your paths.
 
 | Name | Prameters | Description | Return value |
 | ---- | --------- | ----------- | ---------------- |
-| `__construct(array $defaultMiddlewareConfig = ['TOKEN_CONTROL' => true])` | `array $defaultMiddlewareConfig` => this array setup the default behavior of the middlewere. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. | Instantiate a Route object and set up some default Middleware rules | `Route` |
-| `get()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored.  | define a route with GET HTTP method. | `void` |
-| `post()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with POST HTTP method. | `void` |
-| `put()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with PUT HTTP method. | `void` |
-| `delete()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `array $middlewareSettings` => this array setup the middleware for the specific call. Uses 2 keys : `TOKEN_CONTROL` => is a boolean, if true make the middleware check for the token; `TOKEN_AUTH` => is an array, the keys must be token body keys and the values are the expected value for that key. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with DELETE HTTP method. | `void` |
+| `__construct(array $defaultMiddlewareConfig = ['TOKEN_CONTROL' => true])` | `MiddlewareConfiguration $defaultMiddlewareConfig` => A MiddlewareConfiguration Object, this set the default behavior of the Micron Middleware. | Instantiate a Route object and set up some default Middleware rules | `Route` |
+| `get()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `MiddlewareConfiguration or null $middlewareSettings` => Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored.  | define a route with GET HTTP method. | `void` |
+| `post()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `MiddlewareConfiguration or null $middlewareSettings` => Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with POST HTTP method. | `void` |
+| `put()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br />`MiddlewareConfiguration or null $middlewareSettings` => Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with PUT HTTP method. | `void` |
+| `delete()` | `string $route` => path for reach the resource <br />  `function $callback(Request $request)` => function to be executed, admit a parameter of Request class type. <br /> `array $header` => headers setted by resource in form of `"header" => "value"` <br /> `MiddlewareConfiguration or null $middlewareSettings` => Middleware Behavior for the request -> with this you can control token checking, token authorization and allowed content types . If null the default configuration will be loaded. <br /> `array $allowedQueryParams` => this array can contains the allowed URI variables (e.g. http://test.com?tvariable=test&v2=t2, in this array you have to put "tvariable" and "v2" other variables will be ignored. | define a route with DELETE HTTP method. | `void` |
 | `notFound()` | `string $path` => path of the file to be included | attach a file that manage the "resource not found" case. | `void` |
 | `enableCORS()` | `string $allowedOrigin = "*"` => Parameter for set allowed origin. "*" By default. | Is used for manage the Preflight CORS request. | `void` |
 

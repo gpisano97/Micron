@@ -20,6 +20,7 @@ use core\Database\DBConnectors\MySQLDbConnector;
 use core\Database\Types\PropertyInfo;
 
 use core\Database\Types\VoidField;
+use core\Resource;
 use Exception;
 use PDO;
 use ReflectionClass;
@@ -51,11 +52,23 @@ class DBModel
     private $fieldsToIgnore = [];
     private $primaryKeys = [];
     private $autoIncrements = [];
+    private array $columnsData = [];
     private $referencesKeys = []; // propertyName => ["table", "columns"]
     private $properties = []; //contains the class properties. Every entry is an object of PropertyInfo (Reflection Property, attributes, attributes names). This is an associative array, the key is the property name.
     private $propertiesKeys = []; //this array contains the propertyNames, every entry allows to access the properties array.
     private ReflectionClass $reflectionClass; //the reflection of the class. In usecase contains the child class.
     private array $columnTypes = [DbInt::class, DbFloat::class, Varchar::class, BigInt::class, DbDouble::class, Text::class]; //helper array containing all allowed types 
+
+
+    private function getDbConnector(string $dbType)
+    {
+        switch ($dbType) {
+            case 'mysql':
+                return new MySQLDbConnector();
+            default:
+                return null;
+        }
+    }
 
     /**
      * Create an Object mapped representation of a database table
@@ -113,25 +126,35 @@ class DBModel
             }
 
             $data = $this->checkExternalReferences($propertyAttributes, $propertyAttributeNames)["reference"];
-            if(count($data) > 0){
+            if (count($data) > 0) {
                 $this->referencesKeys[$field] = $data;
             }
-            
+
         }
 
         //here put the manageTableOnDatabase function
         $this->db = new Database();
 
-        switch ($this->db->getDbType()) {
-            case 'mysql':
-                $this->dbConnector = new MySQLDbConnector();
-                break;
-            default:
-                $this->dbConnector = null;
-                break;
-        }
-        //check if the table exist and check for schema modification (in standby for now)
+        $this->dbConnector = $this->getDbConnector($this->db->getDbType());
+
+        //check if the table exist and check for schema modification
         $this->manageTableOnDatabase();
+    }
+
+    public function getPrimaryKeys()
+    {
+        $pks = array_keys($this->primaryKeys);
+        $retData = [];
+        if (count($this->columnsData)) {
+            foreach ($pks as $pk) {
+                $retData[$pk] = $this->columnsData[$pk];
+            }
+        }
+
+        if (count($retData)) {
+            return $retData;
+        }
+        return $pks;
     }
 
     /**
@@ -209,140 +232,168 @@ class DBModel
         $tableExist = $this->db->ExecQuery("SHOW TABLES LIKE '{$this->tableName}'")->rowCount() !== 0;
 
         $mustCreateTable = $thereIsCreateIfNotExistAttribute;
-        //must implement "Update if different" mechanism, add an Attribute UpdateTableIfDifferent
-        if ($mustCreateTable) {
-            //create the table on DB according to public properties.
-            $propertiesCount = count($this->propertiesKeys);
-            $i = 0;
-            $primaryKeys = [];
-            $columnsData = [];
-            $autoIncrementFound = false;
-            while ($i < $propertiesCount) {
-                //column datas
-                $propertyName = $this->propertiesKeys[$i];
-                $defaultValue = null;
-                $columnType = null;
-                $columnValueLength = null;
-                $is_pk = false;
-                $nullable = null;
-                /****/
 
-                $property = $this->properties[$propertyName]->reflection;
-                $attributesNames = $this->properties[$propertyName]->attributeNames;
+        //create the table on DB according to public properties.
+        $propertiesCount = count($this->propertiesKeys);
+        $i = 0;
+        $primaryKeys = [];
+        $columnsData = [];
+        $autoIncrementFound = false;
+        while ($i < $propertiesCount) {
+            //column datas
+            $propertyName = $this->propertiesKeys[$i];
+            $defaultValue = null;
+            $columnType = null;
+            $columnValueLength = null;
+            $is_pk = false;
+            $nullable = null;
+            /****/
 
+            $property = $this->properties[$propertyName]->reflection;
+            $attributesNames = $this->properties[$propertyName]->attributeNames;
+            $propertyAttributes = $this->properties[$propertyName]->attributes;
 
-                //checking if is autoincrement.
-                $isAutoincrement = is_int(array_search(AutoIncrement::class, $attributesNames));
-                if ($isAutoincrement) {
-                    $isPrimaryKey = is_int(array_search(PrimaryKey::class, $attributesNames));
-                    if ($autoIncrementFound || !$isPrimaryKey) {
-                        throw new Exception("You can define only one AutoIncrement column and must be PrimaryKey");
-                    } else if (count($primaryKeys) > 0) {
-                        throw new Exception("AutoIncrement column already setted, you cannot add other PrimaryKey columns");
-                    }
-                    $autoIncrementFound = true;
-                    $nullable = false;
+            //checking if is autoincrement.
+            $isAutoincrement = is_int(array_search(AutoIncrement::class, $attributesNames));
+            if ($isAutoincrement) {
+                $isPrimaryKey = is_int(array_search(PrimaryKey::class, $attributesNames));
+                if ($autoIncrementFound || !$isPrimaryKey) {
+                    throw new Exception("You can define only one AutoIncrement column and must be PrimaryKey");
+                } else if (count($primaryKeys) > 0) {
+                    throw new Exception("AutoIncrement column already setted, you cannot add other PrimaryKey columns");
+                }
+                $autoIncrementFound = true;
+                $nullable = false;
+                $is_pk = true;
+                $columnType = BigInt::name;
+                $columnValueLength = 20;
+            }
+
+            //checking if is a PrimaryKey
+            if (!$is_pk) {
+                $primaryKeyIndex = array_search(PrimaryKey::class, $attributesNames);
+                if (is_int($primaryKeyIndex) && $autoIncrementFound === true) {
+                    throw new Exception("AutoIncrement column already setted, you cannot add PrimaryKey columns");
+                } else if (is_int($primaryKeyIndex)) {
                     $is_pk = true;
-                    $columnType = BigInt::name;
-                    $columnValueLength = 20;
+                }
+            }
+
+            $references = $this->checkExternalReferences($propertyAttributes, $attributesNames)["reference"];
+
+            //se ha una referenza esterna deve per forza indicare come tipo della colonna la Classe
+            //prendo il tipo e mi cerco la chiave primaria, se è più di una lascio stare, facciamo che funziona solo con 1
+            //devo capire il tipo della chiave primaria e farlo uguale
+            //magari istanzio un'oggetto del modello... vediamo
+            if (count($references) !== 0) {
+                if (!$mustCreateTable) {
+                    throw new Exception("In order to use the Reference attribute, you must use CreateIfNotExist attribute. Micron will manage the table on the DB.");
+                }
+                $propertyType = "{$property->getType()}";
+                if (!is_a($propertyType, DBModel::class, true)) {
+                    throw new Exception("$propertyName type must extends DBModel in order to use Reference attribute.");
                 }
 
-                //checking if is a PrimaryKey
-                if (!$is_pk) {
-                    $primaryKeyIndex = array_search(PrimaryKey::class, $attributesNames);
-                    if (is_int($primaryKeyIndex) && $autoIncrementFound === true) {
-                        throw new Exception("AutoIncrement column already setted, you cannot add PrimaryKey columns");
-                    } else if (is_int($primaryKeyIndex)) {
-                        $is_pk = true;
+                $instance = new $propertyType();
+                $pks = $instance->getPrimaryKeys();
+                if (count($pks) > 1) {
+                    throw new Exception("This versions of Micron supports Reference mechanism only if the referenced model has 1 primary key. $propertyType has " . count($pks));
+                }
+                foreach ($pks as $pk) {
+                    $columnType = $pk["type"];
+                    $columnValueLength = $pk["length"];
+                }
+
+                unset($instance);
+            }
+
+            if ($columnType === null) {
+                //checking explicit type
+                $columnType = array_values(array_intersect($attributesNames, $this->columnTypes));
+                if (count($columnType) > 1) {
+                    throw new Exception("$propertyName must have only one 'type' attribute. " . count($columnType) . " found.");
+                } else if (count($columnType) === 1) {
+                    $columnType = $columnType[0];
+                    $typeAttributeIndex = array_search($columnType, $attributesNames);
+
+                    $columnType = $columnType::name;
+                    $value = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->getArguments();
+
+                    $instance = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->newInstance();
+                    $valueI = $instance->length ?? null;
+                    if (count($value) > 0) {
+                        $columnValueLength = $value[0];
+                        if (isset($value["length"])) {
+                            $columnValueLength = $value["length"];
+                        }
+                    }
+                    if ($columnValueLength === null && $valueI !== null) {
+                        $columnValueLength = $valueI;
+                    }
+
+                } else {
+                    $columnType = null;
+                }
+
+                //checking column type by property type
+                if ($columnType === null) {
+                    $propertyType = $property->getType();
+                    if ($propertyType !== null) {
+                        $columnType = $this->convertPhpTypeToDbType($propertyType->getName());
                     }
                 }
 
                 if ($columnType === null) {
-                    //checking explicit type
-                    $columnType = array_values(array_intersect($attributesNames, $this->columnTypes));
-                    if (count($columnType) > 1) {
-                        throw new Exception("$propertyName must have only one 'type' attribute. " . count($columnType) . " found.");
-                    } else if (count($columnType) === 1) {
-                        $columnType = $columnType[0];
-                        $typeAttributeIndex = array_search($columnType, $attributesNames);
-
-                        $columnType = $columnType::name;
-                        $value = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->getArguments();
-
-                        $instance = $this->properties[$propertyName]->attributes[$typeAttributeIndex]->newInstance();
-                        $valueI = $instance->length ?? null;
-                        if (count($value) > 0) {
-                            $columnValueLength = $value[0];
-                            if (isset($value["length"])) {
-                                $columnValueLength = $value["length"];
-                            }
-                        }
-                        if ($columnValueLength === null && $valueI !== null) {
-                            $columnValueLength = $valueI;
-                        }
-
-                    } else {
-                        $columnType = null;
-                    }
-
-
-                    //checking default value by attribute
-                    $defaultAttributeIndex = array_search(DefaultValue::class, $attributesNames);
-                    if (is_int($defaultAttributeIndex)) {
-                        $value = $this->properties[$propertyName]->attributes[$defaultAttributeIndex]->getArguments();
-                        $defaultValue = $value[0];
-                        if (isset($value["value"])) {
-                            $defaultValue = $value["value"];
-                        }
-                        //type inference.
-                        if ($columnType === null) {
-                            $columnType = gettype($defaultValue);
-                            $columnType = $this->convertPhpTypeToDbType($columnType);
-                        }
-                    }
-
-                    //checking default value by property type
-                    if ($defaultValue === null && $property->hasDefaultValue()) {
-                        $defaultValue = $property->getDefaultValue();
-                        if ($columnType === null) {
-                            $columnType = gettype($defaultValue);
-                            $columnType = $this->convertPhpTypeToDbType($columnType);
-                        }
-                    }
-
-                    //checking column type by property type
-                    if ($columnType === null) {
-                        $propertyType = $property->getType();
-                        if ($propertyType !== null) {
-                            $columnType = $this->convertPhpTypeToDbType($propertyType->getName());
-                        }
-                    }
-
-                    if ($columnType === null) {
+                    if ($mustCreateTable) {
                         throw new Exception("$propertyName must have a type in order to be created. Set a type through: attribute, DefaultValue attribute, property default value or property type. Otherwise you need to manually create your table.");
                     }
                 }
-
-
-                if ($nullable === null) {
-                    $nullable = $defaultValue === null;
-                }
-
-                $propertyAttributes = $this->properties[$propertyName]->attributes;
-
-                $columnsData[$propertyName] = [
-                    "name" => $propertyName,
-                    "type" => strtolower($columnType),
-                    "length" => $columnValueLength,
-                    "is_autoincrement" => $isAutoincrement,
-                    "is_pk" => $is_pk || $isAutoincrement,
-                    "is_nullable" => $nullable,
-                    "default_value" => $defaultValue,
-                    "reference" => $this->checkExternalReferences($propertyAttributes, $attributesNames)["reference"]
-                ];
-                $i++;
             }
 
+            //checking default value by attribute
+            $defaultAttributeIndex = array_search(DefaultValue::class, $attributesNames);
+            if (is_int($defaultAttributeIndex)) {
+                $value = $this->properties[$propertyName]->attributes[$defaultAttributeIndex]->getArguments();
+                $defaultValue = $value[0];
+                if (isset($value["value"])) {
+                    $defaultValue = $value["value"];
+                }
+                //type inference.
+                if ($columnType === null) {
+                    $columnType = gettype($defaultValue);
+                    $columnType = $this->convertPhpTypeToDbType($columnType);
+                }
+            }
+
+            //checking default value by property type
+            if ($defaultValue === null && $property->hasDefaultValue()) {
+                $defaultValue = $property->getDefaultValue();
+                if ($columnType === null) {
+                    $columnType = gettype($defaultValue);
+                    $columnType = $this->convertPhpTypeToDbType($columnType);
+                }
+            }
+
+
+            if ($nullable === null) {
+                $nullable = $defaultValue === null;
+            }
+
+            $columnsData[$propertyName] = [
+                "name" => $propertyName,
+                "type" => strtolower($columnType),
+                "length" => $columnValueLength,
+                "is_autoincrement" => $isAutoincrement,
+                "is_pk" => $is_pk || $isAutoincrement,
+                "is_nullable" => $nullable,
+                "default_value" => $defaultValue,
+                "reference" => $references
+            ];
+            $i++;
+        }
+
+        $this->columnsData = $columnsData;
+        if ($mustCreateTable) {
             if ($tableExist) {
                 $this->dbConnector->updateTable($columnsData, $this->tableName, $this->db);
             } else {
@@ -352,20 +403,29 @@ class DBModel
         }
     }
 
-    private function getNewInstanceFromArray($array)
+    private function getPropertyType($propertyName)
+    {
+        $property = $this->properties[$propertyName]->reflection;
+        return "{$property->getType()}";
+    }
+
+    private function getNewInstanceFromArray($array, $jumpReferences = false)
     {
         $className = $this::class;
         $obj = new $className();
-        $pkIndex = 0;
-        $pkCount = count($this->propertiesKeys);
-        while ($pkIndex < $pkCount) {
-            $propertyName = $this->propertiesKeys[$pkIndex];
-
-            if (array_key_exists($propertyName, $array)) {
-                $obj->$propertyName = $array[$propertyName];
+        foreach ($this->columnsData as $columnName => $columnData) {
+            $isReference = $columnData["reference"] !== null && count($columnData["reference"]) > 0;
+            if (array_key_exists($columnName, $array)) {
+                if (!$jumpReferences && $isReference) {
+                    $referenceClass = $this->getPropertyType($columnName);
+                    $refrenceInstance = new $referenceClass();
+                    $refrenceInstance->{$columnData["reference"]["columns"][0]} = $array[$columnName];
+                    $refrenceInstance->read();
+                    $obj->$columnName = $refrenceInstance;
+                } else if (!$isReference) {
+                    $obj->$columnName = $array[$columnName];
+                }
             }
-
-            $pkIndex++;
         }
 
         return $obj;
@@ -410,6 +470,10 @@ class DBModel
         while ($i < count($this->propertiesKeys)) {
             $property = $this->properties[$this->propertiesKeys[$i]];
             $index = array_search(DefaultValue::class, $property->attributeNames);
+
+            foreach ($this->referencesKeys as $field => $data) {
+                $this->$field->clear();
+            }
 
             if (is_int($index)) {
                 $property->reflection->setValue($this, $property->attributes[$index]->getArguments()[0]);
@@ -495,26 +559,9 @@ class DBModel
             $i++;
         }
 
-        $joins = "";
-        /* $i = 0;
-        $references = array_keys($this->referencesKeys);
-        $joinsCount = count($references);
-        while($i < $joinsCount){
-            $tableField = $references[$i];
-            
-            $referenceTableName = $this->referencesKeys[$tableField]["table"];
-            $referencesColumns = $this->referencesKeys[$tableField]["columns"];
-            if($referenceTableName !== $this->tableName){
-                $joins .= "INNER JOIN $referenceTableName t$i ON t{$i}.{$referencesColumns[0]} = {$this->tableName}.{$tableField} ";
-            }
-            $i++;
-        } */
 
         $query = "SELECT *\n";
-        $query .= "FROM {$this->tableName} \n";        
-        if($joins !== ""){
-            $query .= "$joins \n";
-        }
+        $query .= "FROM {$this->tableName} \n";
         $query .= "WHERE 1=1 $condition";
 
         $result = $this->db->ExecQuery($query, $data);
@@ -528,13 +575,12 @@ class DBModel
         $i = 0;
         $references = array_keys($this->referencesKeys);
         $joinsCount = count($references);
-        while($i < $joinsCount){
+        while ($i < $joinsCount) {
             $tableField = $references[$i];
-            
-            $referenceTableName = $this->referencesKeys[$tableField]["table"];
+            $property = $this->properties[$tableField]->reflection;
+            $referenceFieldType = "{$property->getType()}";
             $referencesColumns = $this->referencesKeys[$tableField]["columns"];
-            
-            $refTable = new $referenceTableName();
+            $refTable = new $referenceFieldType();
             $refTable->{$referencesColumns[0]} = $data[$tableField];
             $refTable->read();
             $data[$tableField] = $refTable;
@@ -552,8 +598,6 @@ class DBModel
             }
             $i++;
         }
-
-        //$this->test1_id = $rt;
 
         return $this;
     }
@@ -575,11 +619,14 @@ class DBModel
         $result = $this->db->ExecQuery($query, $data);
         $data = $result->fetchAll(PDO::FETCH_ASSOC);
 
+        $hasReferences = count($this->referencesKeys) > 0;
+
         $index = 0;
         $dataCount = count($data);
 
         while ($index < $dataCount) {
-            $data[$index] = $this->getNewInstanceFromArray($data[$index]);
+            $data[$index] = $this->getNewInstanceFromArray($data[$index], true);
+
             $index++;
         }
 

@@ -38,8 +38,7 @@ final class Test2 extends DBModel {
 
     #[TableField]
     #[Reference("test1", ["test1_id"])]
-    #[BigInt()]
-    public $test1;
+    public Test1 $test1;
 
     #[TableField]
     #[Varchar(50)]
@@ -58,7 +57,7 @@ final class TestRes implements Resource
 
                 $t2->test2_id = 1;
 
-                Response::instance()->success("", $t2->read());
+                Response::instance()->success("", $t2->readAll());
             },
             middlewareSettings: MiddlewareConfiguration::getConfiguration(tokenControl: false)
         );

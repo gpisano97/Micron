@@ -120,6 +120,10 @@ final class MySQLDbConnector implements DbConnectorInterface
                     "name" => $remoteColumnName,
                     "operation" => "remove"
                 ];
+
+                if($remoteIsForeignKey){
+                    $fksRemove[] = $foreignKeyInfo[$remoteColumnName];
+                }
             } else {
                 $classColumn = $columnsData[$remoteColumnName];
 
@@ -197,7 +201,7 @@ final class MySQLDbConnector implements DbConnectorInterface
                     }
                     //in order to remove or updates column reference
                     if ($mustRemoveFK || ($mustChangeFK && $remoteForeignKey !== null)) {
-                        $fksRemove[] = $remoteForeignKey["reference_name"];
+                        $fksRemove[] = $remoteForeignKey;
                     }
                     //this means that the reference already exist on DB, but we can change it
                     if ($mustChangeFK) {
@@ -262,15 +266,18 @@ final class MySQLDbConnector implements DbConnectorInterface
                     }
                     $alterSql .= ",";
                 } else if ($columnToChange["operation"] === "remove") {
-                    $alterSql .= "DROP COLUMN `{$columnData["name"]}`";
+                    $alterSql .= "DROP COLUMN `{$columnToChange["name"]}`,";
                 }
             }
             $alterSql[strlen($alterSql) - 1] = ";";
+            if(count($fksRemove) > 0){
+                $this->manageTableExternalReference($tableName, $connection, $fksRemove, [], $columnsData);
+            }
             $connection->ExecQuery($alterSql);
         }
-        if (count($fksRemove) > 0 || count($fksAdd) > 0) {
+        if (count($fksAdd) > 0) {
             try {
-                $this->manageTableExternalReference($tableName, $connection, $fksRemove, $fksAdd, $columnsData);
+                $this->manageTableExternalReference($tableName, $connection, [], $fksAdd, $columnsData);
             } catch (\Throwable $th) {
                 $query = "DROP TABLE `{$tableName}`";
                 $connection->ExecQuery($query);

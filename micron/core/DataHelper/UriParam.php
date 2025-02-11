@@ -3,6 +3,7 @@ namespace core\DataHelper;
 enum UriParamType {
     case number;
     case string;
+    case none;
 } 
 
 
@@ -20,6 +21,9 @@ class UriParam
             case UriParamType::string :
                 $paramType = "string";
                 break;
+            case UriParamType::none :
+                $paramType = "none";
+                break;
         }
 
         if($paramType === ""){
@@ -27,7 +31,10 @@ class UriParam
         }
         $this->paramName = $paramName;
         $this->type = $type;
-        $this->URIKey = "{".$paramName.':'.$paramType."}";
+        if($paramType !== "none")
+            $this->URIKey = "{".$paramName.':'.$paramType."}";
+        else
+            $this->URIKey = "{".$paramName."}";
     }
 
     function __toString(){
